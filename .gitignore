@@ -1,0 +1,12 @@
+# signing secrets — never commit (CI gets them from GitHub Secrets)
+*.jks
+*.keystore
+keystore-password.txt
+imza-anahtari-bilgi.txt
+# build output
+android/out/
+android/work/
+android/tools/
+android/src/assets/index.html
+node_modules/
+test-results/
