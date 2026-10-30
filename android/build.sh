@@ -5,8 +5,8 @@
 # ---- config ----
 APP_NAME="Concrete Empire"        # shown under the icon and inside the game
 APP_ID="com.onur.concreteempire"   # changing it makes Android treat it as a new app (separate save)
-VERSION_CODE=11
-VERSION_NAME="2.2"
+VERSION_CODE=12
+VERSION_NAME="2.3"
 MIN_SDK=24
 TARGET_SDK=34
 BUILD_TOOLS="${BUILD_TOOLS:-34.0.0}"

@@ -706,7 +706,6 @@ const UPG=[
   {id:'design',cat:'sale',name:T('İç mimarlık ofisi','Interior design studio'),c0:5,g:3.0,what:T('Tüm dairelerin satış fiyatı artar.','All units sell for more.'),eff:L=>dim(L,.02,.25),show:v=>T(`+${pc(v)} fiyat`,`+${pc(v)} price`)},
   {id:'presale',cat:'sale',name:T('Maket ve ön satış ekibi','Model & pre-sales team'),c0:2,g:2.9,what:T('Maketten satış fiyatı piyasa fiyatına yaklaşır (başlangıç %70).','Off-plan sale price gets closer to market price (starts at 70%).'),eff:L=>dim(L,.05,.25),show:v=>T(`maketten ${pc(.7+v)}`,`off-plan ${pc(.7+v)}`)},
   {id:'rentm',cat:'sale',name:T('Kira yönetim şirketi','Letting agency'),c0:4,g:2.9,what:T('Kira gelirleri artar.','Rent income goes up.'),eff:L=>dim(L,.06,.6),show:v=>T(`+${pc(v)} kira`,`+${pc(v)} rent`)},
-  {id:'bank',cat:'fin',name:T('Banka ilişkileri','Bank relations'),c0:4,g:2.9,what:T('Kredi faizi düşer, kredi limiti artar.','Lower loan interest, higher loan limit.'),eff:L=>dim(L,.004,.012),show:(v,L)=>T(`faiz ${pc(0.015-v)}/ay, limit +${pc(.25*L)}`,`interest ${pc(0.015-v)}/mo, limit +${pc(.25*L)}`)},
   {id:'pr',cat:'fin',name:T('Halkla ilişkiler','Public relations'),c0:5,g:3.0,what:T('Her anahtar tesliminde ek itibar.','Extra Reputation on every handover.'),eff:L=>L,show:v=>T(`teslimde +${v} itibar`,`+${v} Reputation on handover`)}
 ];
 const upCost=(u,L)=>Math.round(u.c0*Math.pow(u.g,L)*2)/2;
@@ -842,7 +841,7 @@ const m2Left=p=>Math.max(0,(p.m2Tot||0)-(p.m2Done||0));
 const secsLeft=p=>Math.ceil(m2Left(p)/Math.max(1e-9,m2ps()));
 /* Live rent income per second: exactly what tick() pays out from rented flats each second. */
 /* Shown at the bottom of Settings. The APK build rewrites this line with its own version name. */
-const APP_VERSION='2.2';
+const APP_VERSION='2.3';
 /* The game's name lives only here (the page title and Settings read it; the APK build rewrites it too). */
 const GAME_NAME='Concrete Empire';
 document.title=GAME_NAME;
@@ -1427,7 +1426,7 @@ function stageHTML(p){
         <dt>${T('Daireler','Units')}</dt><dd>${T(`${p.dev} sen · ${p.o} ev sahibi`,`${p.dev} yours · ${p.o} owner`)}</dd>
       </dl>
       ${short||p.stalled?`<p class="note warn">${T('Nakit bitince şantiye durur. Maketten daire satabilir ya da reklam izleyip hibe alabilirsin.','When cash runs out the site stops. Sell units off-plan or watch an ad for a grant.')}</p>`:''}
-      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="loan" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}
+      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="grant" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}
       ${p.stalled&&grantOffer(p)<0.5&&(p.sold>=p.dev||S.cash<weekly)?`<div class="row"><button class="btn ghost" data-a="abandon" data-id="${p.id}">${T(`Şantiyeyi devret · ${fmt(p.spent*0.3)} geri al, itibar −6`,`Hand off site · recover ${fmt(p.spent*0.3)}, Reputation −6`)}</button></div>`:''}
       <div class="row"><button class="btn ghost wide" data-a="presell" data-id="${p.id}" ${p.sold<p.dev?'':'disabled'}>${T('Maketten daire sat','Sell a unit off-plan')} · ${fmt(P*presellK())}</button></div>`
     :p.status==='decide'?(()=>{ const free=p.dev-p.sold, h=Math.floor(free/2), rf=rentPerFlat(p), uN=n=>n===1?'unit':'units';
@@ -1726,7 +1725,7 @@ function tenderStageHTML(p){
       <dt>${T('Nakit yeter','Cash lasts')}</dt><dd class="${short?'neg':'pos'}">${runway>=999?T('rahat','plenty'):runway+T(' sn',' s')}</dd></dl>
       ${p.model==='hak'?`<p class="note">${T(`Devlet her ay yapılan işin bedelini %${nr(p.rate*100)} kâr payıyla öder.`,`The state pays for work done each month plus a ${nr(p.rate*100)}% margin.`)}</p>`:''}
       ${short||p.stalled?`<p class="note warn">${T('Nakit bitince şantiye durur. Reklam izleyip hibe alabilirsin.','When cash runs out the site stops. Watch an ad for a grant.')}</p>`:''}
-      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="loan" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}`
+      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="grant" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}`
     :`<dl class="kv big"><dt>${T('Aylık gelir','Monthly income')}</dt><dd>${fmt(p.total*p.rate/12)}</dd><dt>${T('Toplanan','Collected')}</dt><dd>${fmt(p.opInc||0)}</dd><dt>${T('Yatırım','Investment')}</dt><dd>${fmt(p.spent)}</dd><dt>${T('Devre kalan','Until transfer')}</dt><dd>${T(`${p.opLeft} ay`,`${p.opLeft} ${p.opLeft===1?'month':'months'}`)}</dd></dl>
       <p class="note">${T('Şantiye boşaldı. İşletme sürerken yeni ihale ya da parsel alabilirsin.','The site is free. Take on a new tender or plot while this one operates.')}</p>`;
   return `<article class="stage${building?'':' handed'}${building&&p.stalled?' idle':''}">
@@ -2263,22 +2262,15 @@ function setTab(t){
   scrollTo({top:0});
 }
 /* Bank credit: draw against net worth or unsold flats, 1,5% interest a month, repaid automatically from spare cash. */
-const loanRate=()=>0.015-E('bank');
-const collateral=()=>S.projects.reduce((a,p)=>a+(p.kind==='tender'?(p.status==='build'?p.total*0.5:(p.opLeft||0)*p.total*p.rate/12*0.6):(p.dev-p.sold)*priceOf(p)*0.6),0);
-const loanRoom=()=>Math.max(0,Math.max(10,netWorth()*0.5,collateral())*(1+0.25*up('bank'))-(S.debt||0));
-/* Grant: watching an ad pays out free cash for roughly the next 30 s of work on this site (never more than the site still needs). */
-function grantOffer(p){ const w=weeklyCost(p), need=m2Left(p)*costPerM2(p)-S.cash; return Math.max(0,Math.min(need,w*30)); }
+const loanRate=()=>0.015;
+/* Grant: watching an ad pays out free cash for some seconds of work on this site, never more than the site still needs.
+   It follows the firm level on its own: 30 s at level 1, +3 s per level (87 s at level 20). No upgrade changes it. */
+const grantSecs=()=>30+3*(firmLv()-1);
+function grantOffer(p){ const w=weeklyCost(p), need=m2Left(p)*costPerM2(p)-S.cash; return Math.max(0,Math.min(need,w*grantSecs())); }
 function takeGrant(id){
   const p=S.projects.find(x=>x.id===id); if(!p||p.status!=='build') return;
   const amt=Math.floor(grantOffer(p)*2)/2; if(amt<0.5) return;
   earn(amt); addLog(T(`Teşvik hibesi: ${fmt(amt)} kasaya girdi. Geri ödemesi yok.`,`Grant received: ${fmt(amt)} added to cash. Nothing to repay.`),'good');
-  save(); render();
-}
-function loanOffer(p){ const w=weeklyCost(p), need=m2Left(p)*costPerM2(p)-S.cash; return Math.min(loanRoom(),Math.max(w*8,need)); }
-function takeLoan(id){
-  const p=S.projects.find(x=>x.id===id); if(!p||p.status!=='build') return;
-  const amt=Math.floor(loanOffer(p)*2)/2; if(amt<0.5){ popAt(null,T('Kredi limiti dolu','Credit limit reached'),true); return; }
-  S.cash+=amt; S.debt=(S.debt||0)+amt; addLog(T(`Bankadan ${fmt(amt)} kredi çekildi. Aylık faiz %${DEC((loanRate()*100).toFixed(1))}, borç satış ve kira gelirinden ödenir.`,`Took a ${fmt(amt)} bank loan. ${(loanRate()*100).toFixed(1)}% interest a month, repaid from sales and rent.`),'good');
   save(); render();
 }
 function abandon(id){
@@ -2362,7 +2354,7 @@ document.addEventListener('click',e=>{
     case 'awayok': S.away=null; save(); render(); break;
     case 'lang': { const c=b.dataset.c; if(c===LANG) break; try{ localStorage.setItem(LKEY,c); }catch(e){} save(); location.reload(); break; }
     /* Grants and boosts are only given after a rewarded ad has been watched to the end. */
-    case 'loan': Ads.showRewarded('grant').then(ok=>{ if(ok) takeGrant(+id); else popAt(null,T('Reklam bitmedi, hibe verilmedi','Ad not finished, no grant'),true); }); break;
+    case 'grant': Ads.showRewarded('grant').then(ok=>{ if(ok) takeGrant(+id); else popAt(null,T('Reklam bitmedi, hibe verilmedi','Ad not finished, no grant'),true); }); break;
     case 'boost': { const k=b.dataset.c; Ads.showRewarded('boost-'+k).then(ok=>{ if(ok){ addBoost(k); addLog(k==='rent'?T(`Kira ×2 açıldı: ${BOOST_MIN} dakika boyunca kira iki katı.`,`Rent ×2 on: double rent for ${BOOST_MIN} minutes.`):T(`Hız ×2 açıldı: ${BOOST_MIN} dakika boyunca inşaat iki kat hızlı.`,`Speed ×2 on: building twice as fast for ${BOOST_MIN} minutes.`),'good'); save(); render(); } else popAt(null,T('Reklam bitmedi','Ad not finished'),true); }); break; }
     case 'abandon': abandon(+id); break;
     case 'paydebt': payDebt(); break;
