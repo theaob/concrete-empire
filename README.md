@@ -74,9 +74,10 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - `Ads.showRewarded(placement)` → yalnızca reklam sonuna kadar izlenirse `true`.
   APK'da `window.AndroidAds.showRewarded(placement,id)` köprüsü varsa gerçek reklam; sonucu
   `window.__adResult(id, ok)` ile bildirir. Köprü yoksa 5 saniyelik yer tutucu reklam gösterilir.
-- **Hibe:** Nakit bitince reklam → borçsuz hibe (şantiyenin ~30 sn işi, kalan ihtiyacı aşmaz). Reklam hiçbir yerde kredi vermez;
-  banka kredisi kaldırıldı, eski borç sabit %1,5/ay faizle kira ve satıştan ödenmeye devam eder.
-- **Teşvik danışmanı** (eski "Banka ilişkileri", kayıttaki seviyesi korunur): hibeyi büyütür, en fazla +%100.
+- **Hibe:** Nakit bitince reklam → borçsuz hibe: şantiyenin `30 + 3·(seviye−1)` saniyelik işi (1. seviyede 30 sn, 20.'de 87 sn),
+  kalan ihtiyacı aşmaz. Firma seviyesine göre kendiliğinden ayarlanır; hibeyi artıran geliştirme yok (`grantSecs`).
+  Reklam hiçbir yerde kredi vermez; banka kredisi ve "Banka ilişkileri" geliştirmesi kaldırıldı. Eski borç sabit %1,5/ay
+  faizle kira ve satıştan ödenmeye devam eder.
 - **Kira ×2 / Hız ×2:** Her reklam 3 dk açar, en fazla 30 dk'ya kadar uzar; süre gerçek saatle işler.
   Uygulama kapalıyken biriken kira katlanmaz.
 

@@ -706,7 +706,6 @@ const UPG=[
   {id:'design',cat:'sale',name:T('İç mimarlık ofisi','Interior design studio'),c0:5,g:3.0,what:T('Tüm dairelerin satış fiyatı artar.','All units sell for more.'),eff:L=>dim(L,.02,.25),show:v=>T(`+${pc(v)} fiyat`,`+${pc(v)} price`)},
   {id:'presale',cat:'sale',name:T('Maket ve ön satış ekibi','Model & pre-sales team'),c0:2,g:2.9,what:T('Maketten satış fiyatı piyasa fiyatına yaklaşır (başlangıç %70).','Off-plan sale price gets closer to market price (starts at 70%).'),eff:L=>dim(L,.05,.25),show:v=>T(`maketten ${pc(.7+v)}`,`off-plan ${pc(.7+v)}`)},
   {id:'rentm',cat:'sale',name:T('Kira yönetim şirketi','Letting agency'),c0:4,g:2.9,what:T('Kira gelirleri artar.','Rent income goes up.'),eff:L=>dim(L,.06,.6),show:v=>T(`+${pc(v)} kira`,`+${pc(v)} rent`)},
-  {id:'bank',cat:'fin',name:T('Teşvik danışmanı','Grant adviser'),c0:4,g:2.9,what:T('Reklamla alınan hibe büyür.','Ad grants get bigger.'),eff:L=>dim(L,.2,1),show:v=>T(`hibe +${pc(v)}`,`+${pc(v)} grant`)},
   {id:'pr',cat:'fin',name:T('Halkla ilişkiler','Public relations'),c0:5,g:3.0,what:T('Her anahtar tesliminde ek itibar.','Extra Reputation on every handover.'),eff:L=>L,show:v=>T(`teslimde +${v} itibar`,`+${v} Reputation on handover`)}
 ];
 const upCost=(u,L)=>Math.round(u.c0*Math.pow(u.g,L)*2)/2;
@@ -2264,9 +2263,10 @@ function setTab(t){
 }
 /* Bank credit: draw against net worth or unsold flats, 1,5% interest a month, repaid automatically from spare cash. */
 const loanRate=()=>0.015;
-/* Grant: watching an ad pays out free cash for roughly the next 30 s of work on this site (more with the grant adviser),
-   never more than the site still needs. */
-function grantOffer(p){ const w=weeklyCost(p), need=m2Left(p)*costPerM2(p)-S.cash; return Math.max(0,Math.min(need,w*30*(1+E('bank')))); }
+/* Grant: watching an ad pays out free cash for some seconds of work on this site, never more than the site still needs.
+   It follows the firm level on its own: 30 s at level 1, +3 s per level (87 s at level 20). No upgrade changes it. */
+const grantSecs=()=>30+3*(firmLv()-1);
+function grantOffer(p){ const w=weeklyCost(p), need=m2Left(p)*costPerM2(p)-S.cash; return Math.max(0,Math.min(need,w*grantSecs())); }
 function takeGrant(id){
   const p=S.projects.find(x=>x.id===id); if(!p||p.status!=='build') return;
   const amt=Math.floor(grantOffer(p)*2)/2; if(amt<0.5) return;
