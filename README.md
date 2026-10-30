@@ -49,7 +49,7 @@ uygulama adına yazar. Çıktı: `android/out/ConcreteEmpire-<sürüm>.apk` (v1+
 
 Testler: `npm install && npx playwright install chromium && npm test`.
 
-## Mevcut durum (sürüm 2.2)
+## Mevcut durum (sürüm 2.3)
 
 **Arayüz**
 - Üst bar: nakit, anlık kira (₺/sn, güçlendirme açıkken "×2"), net değer, firma seviyesi, itibar, çimento/demir.
@@ -74,8 +74,9 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - `Ads.showRewarded(placement)` → yalnızca reklam sonuna kadar izlenirse `true`.
   APK'da `window.AndroidAds.showRewarded(placement,id)` köprüsü varsa gerçek reklam; sonucu
   `window.__adResult(id, ok)` ile bildirir. Köprü yoksa 5 saniyelik yer tutucu reklam gösterilir.
-- **Hibe:** Nakit bitince reklam → borçsuz hibe (şantiyenin ~30 sn işi, kalan ihtiyacı aşmaz). Banka kredisi kaldırıldı;
-  eski borç kira ve satıştan ödenmeye devam eder.
+- **Hibe:** Nakit bitince reklam → borçsuz hibe (şantiyenin ~30 sn işi, kalan ihtiyacı aşmaz). Reklam hiçbir yerde kredi vermez;
+  banka kredisi kaldırıldı, eski borç sabit %1,5/ay faizle kira ve satıştan ödenmeye devam eder.
+- **Teşvik danışmanı** (eski "Banka ilişkileri", kayıttaki seviyesi korunur): hibeyi büyütür, en fazla +%100.
 - **Kira ×2 / Hız ×2:** Her reklam 3 dk açar, en fazla 30 dk'ya kadar uzar; süre gerçek saatle işler.
   Uygulama kapalıyken biriken kira katlanmaz.
 
@@ -85,7 +86,7 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - Kirayla yavaş ilerlerken şantiye ancak 3 sn üst üste nakit yoksa "durdu" olur.
 
 **Android**
-- Paket `com.onur.concreteempire`, son sürüm 2.2 (versionCode 11).
+- Paket `com.onur.concreteempire`, son sürüm 2.3 (versionCode 12).
 - 1.x sürümleri `com.onur.katkarsiligi` paketindeydi; kayıt Ayarlar > Kayıt kodu ile taşınır.
 - Kayıt anahtarları (`kk-tycoon-*`) eski adla kaldı, değiştirilirse kayıtlar kaybolur.
 
@@ -100,6 +101,4 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 
 - **Gerçek reklam ağı (AdMob):** Uygulama kimliği ve ödüllü reklam birimi kimliği gerekli. Google Mobile Ads
   kütüphanesi `dl.google.com` / `maven.google.com` üzerinden iner; Java tarafında `AndroidAds` köprüsü yazılacak.
-- **"Banka ilişkileri" geliştirmesi:** Kredi kalktığı için işlevsiz. Kaldırılacak mı yoksa hibe artışına mı
-  çevrilecek, karar bekliyor.
 - Geliştirmeler sekmesinde ve marka panelinde m²/sn bilgisi hâlâ görünüyor.
