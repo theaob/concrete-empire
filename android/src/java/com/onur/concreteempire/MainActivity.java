@@ -10,6 +10,8 @@ import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 /** Full-screen WebView that runs assets/index.html (the whole game). Saves live in the WebView's localStorage. */
 public class MainActivity extends Activity {
@@ -34,6 +36,13 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         setContentView(web);
         hideBars();
+        if (Build.VERSION.SDK_INT >= 33) {
+            // Android 13+ (and always from targetSdk 36): onBackPressed is no longer called, back goes through this callback
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                new OnBackInvokedCallback() {
+                    @Override public void onBackInvoked() { moveTaskToBack(true); }
+                });
+        }
         if (state != null) web.restoreState(state);
         else web.loadUrl("file:///android_asset/index.html");
     }
@@ -64,7 +73,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // the game has no page history; back sends the app to the background instead of killing it
+        // Android 12 and older. The game has no page history; back sends the app to the background instead of killing it
         moveTaskToBack(true);
     }
 

@@ -9,7 +9,7 @@ inşa eder, daireleri satar veya kiraya verir. Oyun sonsuzdur (bitiş yok). Web 
 | Yol | İçerik |
 |---|---|
 | `game/index.html` | **Oyunun kendisi (asıl kaynak).** Web sürümü ve APK bu dosyadan. |
-| `android/build.sh` | İmzalı APK derleme betiği. Ayarlar en üstte (ad, paket, sürüm). |
+| `android/build.sh` | İmzalı APK + Play için imzalı AAB derleme betiği. Ayarlar en üstte (ad, paket, sürüm). |
 | `android/src/` | Android kabuğu: manifest, `MainActivity.java` (tam ekran WebView), simgeler. `assets/index.html` derlemede `game/`'den kopyalanır. |
 | `android/tools/` | (İsteğe bağlı, repoda yok) SDK'sız derleme araçları: aapt2, android.jar, d8, ecj, apksigner. Yoksa `build.sh` `$ANDROID_HOME`'daki Android SDK'yı kullanır. |
 | `android/zipalign.py` | Basit zipalign (Python). |
@@ -18,12 +18,14 @@ inşa eder, daireleri satar veya kiraya verir. Oyun sonsuzdur (bitiş yok). Web 
 | `tests/smoke.mjs` | Playwright duman testi: Türkçe ve İngilizce açılış, sayfa hataları, İngilizcede kalan Türkçe metin. |
 | `docs/translation-rules.md` | İngilizce çeviri kuralları ve terim sözlüğü. |
 | `docs/icon-512.png` | Uygulama simgesinin kaynağı (mipmap'ler bundan üretildi). |
-| `.github/workflows/ci.yml` | Test → imzalı APK → (main'de) itch.io. |
+| `docs/play-store/` | Google Play mağaza metinleri (TR/EN), görseller, Veri güvenliği cevapları, kapalı test adımları. |
+| `docs/privacy.html` | Gizlilik politikası (GitHub Pages: `https://theaob.github.io/concrete-empire/privacy.html`). |
+| `.github/workflows/ci.yml` | Test → imzalı APK + AAB → (main'de) itch.io. |
 
 ## APK derleme
 
-**CI (önerilen):** Her push ve PR'da GitHub Actions testleri çalıştırır ve APK'yı derleyip "apk" artifact'i olarak yükler.
-`v*` etiketinde GitHub Release'e de ekler. `main`'e her push'ta web sürümü ve APK itch.io'ya gönderilir.
+**CI (önerilen):** Her push ve PR'da GitHub Actions testleri çalıştırır, APK'yı ve Google Play için AAB'yi derleyip
+"apk" ve "aab" artifact'leri olarak yükler. `v*` etiketinde ikisini de GitHub Release'e ekler. Play adımları: `docs/play-store/README.md`. `main`'e her push'ta web sürümü ve APK itch.io'ya gönderilir.
 
 Gerekli GitHub Secrets (Settings → Secrets and variables → Actions):
 
@@ -36,7 +38,8 @@ Gerekli GitHub Secrets (Settings → Secrets and variables → Actions):
 
 İmza secret'ları yoksa CI APK'yı geçici bir test anahtarıyla imzalar (`-TESTKEY.apk`); bu APK kurulu sürümün üstüne kurulmaz.
 
-**Yerel:** Linux x64, Java 17+, Python 3, `zip` ve ya `android/tools/` ya da Android SDK (build-tools 34.0.0, platform 34).
+**Yerel:** Linux x64, Java 17+, Python 3, `zip` ve ya `android/tools/` ya da Android SDK (build-tools 36.0.0, platform 36).
+AAB için ayrıca `android/tools/bundletool.jar` (ya da `BUNDLETOOL_JAR`); yoksa yalnız APK çıkar.
 Anahtar ve şifre dosyasını `android/` içine koy, sonra:
 
 ```bash
@@ -45,7 +48,7 @@ bash android/build.sh
 ```
 
 Betik sürüm adını ve oyun adını otomatik olarak oyuna (Ayarlar'daki sürüm satırı, `GAME_NAME`) ve
-uygulama adına yazar. Çıktı: `android/out/ConcreteEmpire-<sürüm>.apk` (v1+v2+v3 imzalı, minSdk 24, targetSdk 34).
+uygulama adına yazar. Çıktı: `android/out/ConcreteEmpire-<sürüm>.apk` (v1+v2+v3 imzalı, minSdk 24, targetSdk 36) ve aynı adla `.aab`.
 
 Testler: `npm install && npx playwright install chromium && npm test`.
 
