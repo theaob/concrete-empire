@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# Concrete Empire — signed APK build
+# Concrete Empire — signed APK (sideload/itch.io) + signed AAB (Google Play upload)
 # Tools: android/tools/ if present (aapt2, android.jar, d8, ecj, apksigner — no SDK needed),
 # otherwise the Android SDK at $ANDROID_HOME (build-tools + platform, as on GitHub Actions runners).
+# AAB needs bundletool: android/tools/bundletool.jar or $BUNDLETOOL_JAR (CI downloads it). Without it only the APK is built.
 # ---- config ----
 APP_NAME="Concrete Empire"        # shown under the icon and inside the game
 APP_ID="com.onur.concreteempire"   # changing it makes Android treat it as a new app (separate save)
 VERSION_CODE=11
 VERSION_NAME="2.2"
 MIN_SDK=24
-TARGET_SDK=34
-BUILD_TOOLS="${BUILD_TOOLS:-34.0.0}"
+TARGET_SDK=36                       # Google Play: new apps/updates must target API 36 (Android 16) from 31 Aug 2026
+BUILD_TOOLS="${BUILD_TOOLS:-36.0.0}"
 B="$(cd "$(dirname "$0")" && pwd)"   # everything is relative to this folder
 # signing: env overrides (CI) or the files next to this script (local). Never commit the key or password.
 KEYSTORE="${KEYSTORE:-$B/katkarsiligi-release.jks}"
 KEY_ALIAS="${KEY_ALIAS:-katkarsiligi}"
 KEY_PASS_FILE="$B/keystore-password.txt"
 OUT="$B/out/${APP_NAME// /}-${VERSION_NAME}.apk"
+AAB="${OUT%.apk}.aab"
 # ----------------
 set -euo pipefail
 unset JAVA_TOOL_OPTIONS
@@ -43,10 +45,11 @@ sed -i "s/^const GAME_NAME='[^']*';/const GAME_NAME='${APP_NAME}';/; s#<title>[^
 grep -q "^const GAME_NAME='${APP_NAME}';" "$S/assets/index.html"
 sed "s/android:label=\"[^\"]*\"/android:label=\"${APP_NAME}\"/" "$S/AndroidManifest.xml" > "$W/AndroidManifest.xml"
 "$AAPT2" compile --dir "$S/res" -o "$W/res.zip"
-"$AAPT2" link -o "$W/base.apk" -I "$ANDROID_JAR" --manifest "$W/AndroidManifest.xml" \
-  --min-sdk-version $MIN_SDK --target-sdk-version $TARGET_SDK \
-  --version-code $VERSION_CODE --version-name "$VERSION_NAME" --rename-manifest-package "$APP_ID" \
-  -A "$S/assets" "$W/res.zip"
+LINK_ARGS=(-I "$ANDROID_JAR" --manifest "$W/AndroidManifest.xml"
+  --min-sdk-version $MIN_SDK --target-sdk-version $TARGET_SDK
+  --version-code $VERSION_CODE --version-name "$VERSION_NAME" --rename-manifest-package "$APP_ID"
+  -A "$S/assets" "$W/res.zip")
+"$AAPT2" link -o "$W/base.apk" "${LINK_ARGS[@]}"
 
 # 2) code
 if [ -n "$ECJ_JAR" ]; then
@@ -77,7 +80,7 @@ if [ ! -f "$KEYSTORE" ] || [ -z "${KSPASS:-}" ]; then
   KEYSTORE="$W/test.jks"; KEY_ALIAS="test"; export KSPASS="testtest"
   keytool -genkeypair -keystore "$KEYSTORE" -storetype PKCS12 -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 \
     -validity 10000 -storepass "$KSPASS" -dname "CN=Test" >/dev/null
-  OUT="${OUT%.apk}-TESTKEY.apk"
+  OUT="${OUT%.apk}-TESTKEY.apk"; AAB="${AAB%.aab}-TESTKEY.aab"
 fi
 java -jar "$APKSIGNER_JAR" sign --ks "$KEYSTORE" --ks-key-alias "$KEY_ALIAS" \
   --ks-pass env:KSPASS --key-pass env:KSPASS \
@@ -86,3 +89,20 @@ java -jar "$APKSIGNER_JAR" sign --ks "$KEYSTORE" --ks-key-alias "$KEY_ALIAS" \
 java -jar "$APKSIGNER_JAR" verify --verbose "$OUT" | head -6
 ls -la "$OUT"
 [ -z "${GITHUB_OUTPUT:-}" ] || echo "apk=$OUT" >> "$GITHUB_OUTPUT"
+
+# 4) Play Store bundle: same manifest, resources, assets and dex, resources in proto format.
+#    Signed with the same key, which becomes the Play *upload key* (Google re-signs for users via Play App Signing).
+BUNDLETOOL_JAR="${BUNDLETOOL_JAR:-$T/bundletool.jar}"
+if [ ! -f "$BUNDLETOOL_JAR" ]; then
+  echo "No bundletool ($BUNDLETOOL_JAR): skipping AAB" >&2; exit 0
+fi
+"$AAPT2" link --proto-format -o "$W/proto.apk" "${LINK_ARGS[@]}"
+M="$W/module"; mkdir -p "$M/manifest" "$M/dex"
+(cd "$M" && unzip -q "$W/proto.apk" && mv AndroidManifest.xml manifest/ && cp "$W/dex/classes.dex" dex/ && zip -qr "$W/base.zip" .)
+rm -f "$AAB"
+java -jar "$BUNDLETOOL_JAR" build-bundle --modules="$W/base.zip" --output="$AAB"
+jarsigner -keystore "$KEYSTORE" -storepass:env KSPASS -keypass:env KSPASS "$AAB" "$KEY_ALIAS" >/dev/null
+jarsigner -verify "$AAB" | grep -m1 "jar verified"
+java -jar "$BUNDLETOOL_JAR" validate --bundle="$AAB" >/dev/null
+ls -la "$AAB"
+[ -z "${GITHUB_OUTPUT:-}" ] || echo "aab=$AAB" >> "$GITHUB_OUTPUT"
