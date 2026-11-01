@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google Play Games Services ids, from Play Console > Play Games Services > Setup and management.
+     Empty project id = Play Games is switched off (the game hides its Play Games row and works as before).
+     An empty achievement / leaderboard id is skipped. Names here are what the game's JS uses (ach_<key>, lb_<key>);
+     don't rename them, only fill in the values. -->
+<resources>
+    <!-- Configuration page: "Project ID" (digits only) -->
+    <string name="game_services_project_id" translatable="false"></string>
+
+    <!-- Achievements (id looks like CgkI...EAIQAQ) -->
+    <string name="ach_first_handover" translatable="false"></string>
+    <string name="ach_projects_10" translatable="false"></string>
+    <string name="ach_projects_50" translatable="false"></string>
+    <string name="ach_level_5" translatable="false"></string>
+    <string name="ach_level_10" translatable="false"></string>
+    <string name="ach_level_20" translatable="false"></string>
+    <string name="ach_level_30" translatable="false"></string>
+    <string name="ach_networth_100m" translatable="false"></string>
+    <string name="ach_networth_1b" translatable="false"></string>
+    <string name="ach_networth_1t" translatable="false"></string>
+    <string name="ach_reputation_90" translatable="false"></string>
+    <string name="ach_brand_1" translatable="false"></string>
+    <string name="ach_streak_7" translatable="false"></string>
+
+    <!-- Leaderboards -->
+    <string name="lb_net_worth" translatable="false"></string>
+    <string name="lb_firm_level" translatable="false"></string>
+    <string name="lb_lifetime_earnings" translatable="false"></string>
+</resources>

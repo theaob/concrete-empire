@@ -9,16 +9,15 @@ inşa eder, daireleri satar veya kiraya verir. Oyun sonsuzdur (bitiş yok). Web 
 | Yol | İçerik |
 |---|---|
 | `game/index.html` | **Oyunun kendisi (asıl kaynak).** Web sürümü ve APK bu dosyadan. |
-| `android/build.sh` | İmzalı APK + Play için imzalı AAB derleme betiği. Ayarlar en üstte (ad, paket, sürüm). |
-| `android/src/` | Android kabuğu: manifest, `MainActivity.java` (tam ekran WebView), simgeler. `assets/index.html` derlemede `game/`'den kopyalanır. |
-| `android/tools/` | (İsteğe bağlı, repoda yok) SDK'sız derleme araçları: aapt2, android.jar, d8, ecj, apksigner. Yoksa `build.sh` `$ANDROID_HOME`'daki Android SDK'yı kullanır. |
-| `android/zipalign.py` | Basit zipalign (Python). |
+| `android/build.sh` | İmzalı APK + Play için imzalı AAB derleme betiği (Gradle'ı çalıştırır). Ayarlar en üstte (ad, paket, sürüm). |
+| `android/build.gradle`, `settings.gradle` | Gradle/Android Gradle Plugin projesi; Play Games kütüphanesi burada. Değerleri `build.sh` verir. |
+| `android/src/` | Android kabuğu: manifest, `MainActivity.java` (tam ekran WebView), `PlayGamesBridge.java` (Play Games köprüsü), `res/values/games-ids.xml` (Play Games kimlikleri), simgeler. `assets/index.html` derlemede `game/`'den kopyalanır. |
 | `android/katkarsiligi-release.jks` + `keystore-password.txt` | **İmza anahtarı ve şifresi. Repoya girmez** (`.gitignore`). Yerelde bu klasöre koyulur; CI GitHub Secrets'tan alır. **Kaybetme:** güncellemeler aynı anahtarla imzalanmazsa telefona üstüne kurulmaz. |
 | `android/out/` | Derlenen APK (repoya girmez). |
 | `tests/smoke.mjs` | Playwright duman testi: Türkçe ve İngilizce açılış, sayfa hataları, İngilizcede kalan Türkçe metin. |
 | `docs/translation-rules.md` | İngilizce çeviri kuralları ve terim sözlüğü. |
 | `docs/icon-512.png` | Uygulama simgesinin kaynağı (mipmap'ler bundan üretildi). |
-| `docs/play-store/` | Google Play mağaza metinleri (TR/EN), görseller, Veri güvenliği cevapları, kapalı test adımları. |
+| `docs/play-store/` | Google Play mağaza metinleri (TR/EN), görseller, Veri güvenliği cevapları, kapalı test adımları. Play Games kurulumu: `play-games.md`. |
 | `docs/privacy.html` | Gizlilik politikası (GitHub Pages: `https://theaob.github.io/concrete-empire/privacy.html`). |
 | `.github/workflows/ci.yml` | Test → imzalı APK + AAB → (main'de) itch.io. |
 
@@ -38,8 +37,8 @@ Gerekli GitHub Secrets (Settings → Secrets and variables → Actions):
 
 İmza secret'ları yoksa CI APK'yı geçici bir test anahtarıyla imzalar (`-TESTKEY.apk`); bu APK kurulu sürümün üstüne kurulmaz.
 
-**Yerel:** Linux x64, Java 17+, Python 3, `zip` ve ya `android/tools/` ya da Android SDK (build-tools 36.0.0, platform 36).
-AAB için ayrıca `android/tools/bundletool.jar` (ya da `BUNDLETOOL_JAR`); yoksa yalnız APK çıkar.
+**Yerel:** Java 17+, Gradle 8.13+ (`gradle` PATH'te ya da `GRADLE=/yol/gradle`) ve Android SDK (`ANDROID_HOME`; build-tools 36.0.0, platform 36).
+Gradle ilk çalışmada Android Gradle Plugin'i ve Play Games kütüphanesini Google Maven'dan indirir.
 Anahtar ve şifre dosyasını `android/` içine koy, sonra:
 
 ```bash
@@ -72,6 +71,12 @@ Testler: `npm install && npx playwright install chromium && npm test`.
   Varsayılan cihaz dili. Statik HTML metinleri `data-en` öznitelikleriyle.
 - İngilizcede para `$1.4M`, yüzde sayıdan sonra. Ev sahipleri, bina adları ve ihale şehirleri İngilizce
   karşılıklarıyla değişir; kayıttaki adlar yüklemede çevrilir (`localizeNames`).
+
+**Google Play Games**
+- Android'de Play Games Hizmetleri v2: otomatik giriş, 13 başarım, 3 liderlik tablosu (net değer, firma seviyesi,
+  toplam kazanç). Ayarlar › Google Play Games satırı yalnız APK'da görünür. Köprü `window.AndroidGames`,
+  kurallar `PGS_ACH` / `PGS_LB`. Kimlikler `android/src/res/values/games-ids.xml`; proje kimliği boşken kapalı.
+  Kurulum: `docs/play-store/play-games.md`.
 
 **Reklam (ana gelir modeli)**
 - `Ads.showRewarded(placement)` → yalnızca reklam sonuna kadar izlenirse `true`.

@@ -34,14 +34,9 @@ jobs:
       - uses: android-actions/setup-android@v3
         with:
           packages: 'build-tools;36.0.0 platforms;android-36'
-      - name: Download bundletool (for the Play Store AAB)
-        env:
-          BUNDLETOOL_VERSION: 1.18.3
-          BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
-        run: |
-          curl -sSfL -o "$RUNNER_TEMP/bundletool.jar" "https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
-          echo "$BUNDLETOOL_SHA256  $RUNNER_TEMP/bundletool.jar" | sha256sum -c -
-          echo "BUNDLETOOL_JAR=$RUNNER_TEMP/bundletool.jar" >> "$GITHUB_ENV"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.14.3
       - name: Restore release key
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -58,6 +53,7 @@ jobs:
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'katkarsiligi' }}
+          GRADLE: gradle
         run: bash android/build.sh
       - uses: actions/upload-artifact@v4
         with:

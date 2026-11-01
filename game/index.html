@@ -578,6 +578,10 @@ input[type=range]{width:100%;accent-color:var(--rust);height:28px}
       <div class="srow"><div data-en="&lt;b&gt;On handover&lt;/b&gt;&lt;small&gt;Applied automatically to your units in every finished building.&lt;/small&gt;"><b>Teslimde</b><small>Biten her binadaki senin dairelerine otomatik uygulanır.</small></div><div id="setPolicy"></div></div>
     </div>
   </section>
+  <section id="pgsSec" hidden>
+    <h2>Google Play Games</h2>
+    <div class="card setc" id="setPgs"></div>
+  </section>
   <section>
     <h2 data-en="Save">Kayıt</h2>
     <div class="card setc">
@@ -638,6 +642,35 @@ const Ads={busy:false,
     });
   }};
 window.__adResult=(id,ok)=>{ const cb=window.__adCb&&window.__adCb[id]; if(cb) cb(ok); };
+/* ===== Google Play Games =====
+   In the Android app window.AndroidGames (Play Games Services v2) signs the player in automatically and reports back
+   through window.__pgsState(signedIn, name). Achievements and leaderboard scores are worked out from the save here and
+   handed over; Play Games keeps them on the player's account and ignores repeats. After every sign-in everything already
+   earned is sent again, so progress made while signed out (or before this feature) still counts. Elsewhere it's inert. */
+const PGS_ACH=[
+  ['first_handover',()=>S.rep>=1], ['projects_10',()=>S.rep>=10], ['projects_50',()=>S.rep>=50],
+  ['level_5',()=>firmLv()>=5], ['level_10',()=>firmLv()>=10], ['level_20',()=>firmLv()>=TENDER_LV], ['level_30',()=>firmLv()>=30],
+  ['networth_100m',()=>netWorth()>=100], ['networth_1b',()=>netWorth()>=1000], ['networth_1t',()=>netWorth()>=1e6],
+  ['reputation_90',()=>iti()>=90], ['brand_1',()=>brand()>=1], ['streak_7',()=>!!D&&(D.best||0)>=7]];
+/* Scores are whole numbers: net worth and lifetime earnings in millions (₺ mn / $M), firm level as is. */
+const PGS_LB=[['net_worth',()=>Math.floor(Math.max(0,netWorth()))],['firm_level',()=>firmLv()],['lifetime_earnings',()=>Math.floor(P.all||0)]];
+const PGS={on:false,name:'',sent:{},best:{},lbAt:0,
+  bridge(){ try{ const g=window.AndroidGames; return g&&g.available()?g:null; }catch(e){ return null; } },
+  check(force){
+    const g=this.on&&S&&this.bridge(); if(!g) return;
+    for(const [k,ok] of PGS_ACH){ if(this.sent[k]) continue; try{ if(ok()&&g.unlock(k)) this.sent[k]=1; }catch(e){} }
+    if(!force&&Date.now()-this.lbAt<60000) return; this.lbAt=Date.now();
+    for(const [k,v] of PGS_LB){ try{ const x=v(); if(x>(this.best[k]??-1)&&g.submitScore(k,x)) this.best[k]=x; }catch(e){} }
+  },
+  call(fn){ const g=this.bridge(); try{ if(g) g[fn](); }catch(e){} }};
+window.__pgsState=(ok,name)=>{ const was=PGS.on; PGS.on=!!ok; PGS.name=name||'';
+  if(PGS.on&&!was){ PGS.sent={}; PGS.best={}; PGS.check(true); }
+  if(S&&TAB==='set') render(); };
+function pgsHTML(){
+  const on=PGS.on;
+  return `<div class="srow"><div><b>${on?T('Bağlı','Signed in'):T('Bağlı değil','Not signed in')}${on&&PGS.name?` · ${esc(PGS.name)}`:''}</b><small>${on?T('Başarımların ve skorların Google Play Games hesabına otomatik işlenir.','Your achievements and scores are saved to your Google Play Games account automatically.'):T('Giriş yapınca başarımların ve liderlik tablosu skorların Google Play Games hesabına kaydedilir. Oyun girişsiz de aynen oynanır.','Sign in to save achievements and leaderboard scores to your Google Play Games account. The game plays the same without it.')}</small></div></div>
+    <div class="sbtns">${on?`<button class="btn" data-a="pgsach">${T('Başarımlar','Achievements')}</button><button class="btn ghostb" data-a="pgslb">${T('Liderlik tabloları','Leaderboards')}</button>`:`<button class="btn" data-a="pgsin">${T('Google Play Games ile giriş yap','Sign in with Google Play Games')}</button>`}</div>`;
+}
 /* Static page text carries its English in data-en attributes; swap it in once at startup. */
 if(LANG==='en'){
   document.querySelectorAll('[data-en]').forEach(e=>{ e.innerHTML=e.getAttribute('data-en'); });
@@ -1866,7 +1899,8 @@ function render(){
     out['#setTicker']=segHTML(T('Haber şeridi','News ticker'),'ticker',[['on',T('Açık','On')],['off',T('Kapalı','Off')]],SET.ticker?'on':'off');
     out['#setAnim']=segHTML(T('Animasyonlar','Animations'),'anim',[['on',T('Açık','On')],['off',T('Kapalı','Off')]],SET.anim?'on':'off');
     out['#setPolicy']=segHTML(T('Teslimde','On handover'),'policy',POLICIES,policy(),'policy');
-    out['#setReset']=resetHTML(); }
+    out['#setReset']=resetHTML();
+    { const sec=$('#pgsSec'), g=!!PGS.bridge(); if(sec) sec.hidden=!g; if(g) out['#setPgs']=pgsHTML(); } }
   out['#projects']=others.length?others.map(projRow).join(''):`<div class="empty">${T('Henüz teslim edilen bina yok.','No buildings handed over yet.')}</div>`;
 
   /* upgrades */
@@ -2225,6 +2259,7 @@ function tick(){
   if(S.week>=WEEKS){ S.week=0; S.month++; emit('month'); monthly(); }
   serviceDebt();
   emit('state');
+  PGS.check();
   save(); render();
 }
 function moveMaterials(){
@@ -2343,6 +2378,9 @@ document.addEventListener('click',e=>{
   if(a!=='rebuild'&&a!=='rebuild2') S.confirmReb=false;
   switch(a){
     case 'tab': setTab(b.dataset.c); break;
+    case 'pgsin': PGS.call('signIn'); break;
+    case 'pgsach': PGS.call('showAchievements'); break;
+    case 'pgslb': PGS.call('showLeaderboards'); break;
     case 'ostep': { const l=N&&negListing(); if(!l) break; const U=unitsOf(l); N.o=b.dataset.c==='ask'?askF(l):clamp(N.o+(+b.dataset.c),0,U); updatePreview(); break; }
     case 'policy': S.policy=b.dataset.c; save(); render(); break;
     case 'set': { const k=b.dataset.k, c=b.dataset.c; SET[k]=k==='theme'?c:c==='on'; saveSet(); if(k==='ticker'&&SET.ticker) renderTicker(); render(); break; }

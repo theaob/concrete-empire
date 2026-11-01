@@ -13,9 +13,11 @@ import android.webkit.WebViewClient;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
-/** Full-screen WebView that runs assets/index.html (the whole game). Saves live in the WebView's localStorage. */
+/** Full-screen WebView that runs assets/index.html (the whole game). Saves live in the WebView's localStorage.
+ *  window.AndroidGames (PlayGamesBridge) connects the game to Google Play Games Services. */
 public class MainActivity extends Activity {
     private WebView web;
+    private PlayGamesBridge games;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -33,7 +35,13 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setTextZoom(100);
-        web.setWebViewClient(new WebViewClient());
+        // The Play Games library brings network permissions with it; the game page itself stays offline as before.
+        s.setBlockNetworkLoads(true);
+        web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView v, String url) { if (games != null) games.refresh(); }
+        });
+        games = new PlayGamesBridge(this, web);
+        web.addJavascriptInterface(games, "AndroidGames");
         setContentView(web);
         hideBars();
         if (Build.VERSION.SDK_INT >= 33) {
@@ -69,7 +77,7 @@ public class MainActivity extends Activity {
     protected void onPause() { web.onPause(); super.onPause(); }
 
     @Override
-    protected void onResume() { super.onResume(); web.onResume(); }
+    protected void onResume() { super.onResume(); web.onResume(); if (games != null) games.refresh(); }
 
     @Override
     public void onBackPressed() {

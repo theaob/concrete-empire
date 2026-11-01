@@ -65,6 +65,7 @@ Firma seviyesi 20'de okul, üniversite, köprü, tünel, otoyol, baraj ve havali
 
 ✔ Sonu olmayan oyun, kendi hızında oyna
 ✔ İnternet gerekmez, hesap gerekmez
+✔ Google Play Games başarımları ve liderlik tabloları
 ✔ Türkçe ve İngilizce
 ```
 
@@ -97,6 +98,7 @@ At firm level 20, schools, universities, bridges, tunnels, motorways, dams and a
 
 ✔ Endless game, play at your own pace
 ✔ No internet, no account needed
+✔ Google Play Games achievements and leaderboards
 ✔ English and Turkish
 ```
 
@@ -106,7 +108,7 @@ At firm level 20, schools, universities, bridges, tunnels, motorways, dams and a
 
 ## Uygulama içeriği (App content) cevapları
 
-Bu sürümde (AdMob yok, `INTERNET` izni yok) cevaplar:
+Bu sürümde (AdMob yok; Play Games var) cevaplar:
 
 | Bölüm | Cevap |
 |---|---|
@@ -122,12 +124,22 @@ Bu sürümde (AdMob yok, `INTERNET` izni yok) cevaplar:
 
 ### Veri güvenliği (Data safety)
 
-Bu sürüm için:
+Play Games Hizmetleri eklendiği için form artık **"Hayır" değil**. Oyunun kendisi veri göndermez (kayıt cihazdaki
+WebView depolamasında durur, oyun ekranı çevrimdışı), ama Play Games SDK'sının topladıklarını beyan etmek gerekiyor.
+Google'ın listesi: [Play Games Hizmetleri veri toplama](https://developer.android.com/games/pgs/data-collection).
+O sayfaya göre önerilen cevaplar (formu doldururken sayfayla bir daha karşılaştır):
 
-- Uygulamanız gerekli kullanıcı veri türlerinden herhangi birini topluyor ya da paylaşıyor mu? **Hayır**
-- (Hayır deyince şifreleme ve silme soruları atlanır.) Sonuç: "Veri toplanmıyor · Üçüncü taraflarla veri paylaşılmıyor".
+- Veri topluyor ya da paylaşıyor mu? **Evet**. Aktarımda şifreleniyor mu? **Evet** (HTTPS).
+- Kullanıcı silme isteyebiliyor mu? **Evet**: Play Games profili veya Google Hesabı üzerinden.
 
-Gerekçe: Oyun internete bağlanmaz (`INTERNET` izni yok), kayıt yalnızca cihazdaki WebView depolamasında durur.
+| Veri türü | Toplanıyor | Paylaşılıyor | Zorunlu mu | Amaç |
+|---|---|---|---|---|
+| Kişisel bilgiler › Kullanıcı kimlikleri (Play Games oyuncu kimliği, oyuncu adı/avatar) | Evet | Hayır | İsteğe bağlı (giriş zorunlu değil) | Uygulama işlevselliği, Hesap yönetimi |
+| Uygulama etkinliği › Diğer işlemler (başarımlar, skorlar) | Evet | Hayır | İsteğe bağlı | Uygulama işlevselliği |
+| Uygulama bilgileri ve performansı › Teşhis | Evet | Hayır | Zorunlu | Analiz |
+| Uygulama etkinliği › Uygulama etkileşimleri (SDK analizi) | Evet | Hayır | Zorunlu | Analiz |
+
+"Paylaşılıyor: Hayır" çünkü veri Google'a hizmet sağlayıcı olarak gidiyor; Play'in tanımında bu paylaşım sayılmaz.
 
 **AdMob eklendiğinde** güncellenecekler (Google'ın AdMob Veri güvenliği rehberine göre):
 

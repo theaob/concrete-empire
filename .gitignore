@@ -10,3 +10,6 @@ android/tools/
 android/src/assets/index.html
 node_modules/
 test-results/
+android/build/
+android/.gradle/
+android/local.properties
