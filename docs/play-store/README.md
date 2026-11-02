@@ -108,19 +108,19 @@ At firm level 20, schools, universities, bridges, tunnels, motorways, dams and a
 
 ## Uygulama içeriği (App content) cevapları
 
-Bu sürümde (AdMob yok; Play Games var) cevaplar:
+v2.4'ten itibaren (AdMob ödüllü reklam + Play Games) cevaplar:
 
 | Bölüm | Cevap |
 |---|---|
 | Gizlilik politikası | `https://theaob.github.io/concrete-empire/privacy.html` |
 | Uygulama erişimi | Tüm işlevler özel erişim olmadan kullanılabilir |
-| Reklamlar | **Hayır**, reklam içermiyor (reklam düğmeleri şimdilik yer tutucu; AdMob eklenince "Evet" yapılacak) |
+| Reklamlar | **Evet**, reklam içeriyor (AdMob ödüllü video; yalnızca oyuncu "reklam izle"ye basınca) |
 | İçerik derecelendirmesi | Kategori: Oyun. Şiddet, cinsellik, küfür, uyuşturucu, kumar: hayır. Kullanıcılar etkileşim kurabiliyor mu / içerik paylaşıyor mu: hayır. Konum paylaşımı: hayır. Dijital satın alma: hayır. Beklenen sonuç: PEGI 3 / Herkes |
 | Hedef kitle | **13-15, 16-17, 18+** (13 altını seçme: Aile politikası ve reklam kısıtları devreye girer). "Çocuklara hitap ediyor mu?": Hayır |
 | Haber uygulaması | Hayır |
 | Veri güvenliği | Aşağıda |
 | Kamu uygulaması / Finans özellikleri / Sağlık | Hayır / Hiçbiri / Hayır |
-| Reklam kimliği (Advertising ID) | Hayır, kullanmıyor |
+| Reklam kimliği (Advertising ID) | **Evet**, kullanıyor. Amaç: **Reklam veya pazarlama** (+ Analiz, Sahtekarlık önleme). Manifest'te `AD_ID` izni var |
 
 ### Veri güvenliği (Data safety)
 
@@ -141,7 +141,7 @@ O sayfaya göre önerilen cevaplar (formu doldururken sayfayla bir daha karşıl
 
 "Paylaşılıyor: Hayır" çünkü veri Google'a hizmet sağlayıcı olarak gidiyor; Play'in tanımında bu paylaşım sayılmaz.
 
-**AdMob eklendiğinde** güncellenecekler (Google'ın AdMob Veri güvenliği rehberine göre):
+**AdMob (v2.4)** için yukarıdaki tabloya eklenecek satırlar ([Google'ın AdMob Veri güvenliği rehberi](https://developers.google.com/admob/android/privacy/play-data-disclosure)):
 
 | Veri türü | Toplanıyor | Paylaşılıyor | Amaç |
 |---|---|---|---|
@@ -150,8 +150,9 @@ O sayfaya göre önerilen cevaplar (formu doldururken sayfayla bir daha karşıl
 | Uygulama bilgileri ve performansı › Kilitlenme ve teşhis | Evet | Evet | Analiz |
 | Konum › Yaklaşık konum (IP'den) | Evet | Evet | Reklam, Sahtekarlık önleme |
 
-Aktarımda şifreli: Evet. Kullanıcı silme isteyebilir: Hayır (veri Google'da). O zaman "Reklamlar: Evet" ve
-manifest'e `com.google.android.gms.permission.AD_ID` da eklenmeli.
+Aktarımda şifreli: Evet. Reklam verisi zorunlu (reklam izlemek isteğe bağlı ama SDK açılışta çalışıyor).
+"Reklamlar: Evet" ve "Reklam kimliği: Evet" beyanları v2.4 AAB'si ile **aynı anda** gönderilmeli; manifest'teki
+`com.google.android.gms.permission.AD_ID` izni bu sürümde eklendi. AdMob kurulumu: [admob.md](admob.md).
 
 ---
 
