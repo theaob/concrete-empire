@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- package is the Java package; build.sh renames the app id to APP_ID and sets android:label to APP_NAME -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.onur.concreteempire">
+<!-- Java package and app id come from build.gradle (namespace / applicationId, set by build.sh); the label is APP_NAME.
+     Permissions the Play Games library needs are merged in from its own manifest. The game's WebView stays offline (MainActivity). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="Concrete Empire"
+        android:name=".App"
+        android:label="${appName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:enableOnBackInvokedCallback="true"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <!-- Play Games Services v2: project id from res/values/games-ids.xml (empty = Play Games off) -->
+        <meta-data android:name="com.google.android.gms.games.APP_ID"
+            android:value="@string/game_services_project_id" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,0 +1,17 @@
+// Gradle project for the Android shell. build.sh drives it (it passes app id, version and signing),
+// so run `bash android/build.sh` rather than gradle directly.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = 'concrete-empire'
