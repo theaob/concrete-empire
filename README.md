@@ -20,6 +20,7 @@ inşa eder, daireleri satar veya kiraya verir. Oyun sonsuzdur (bitiş yok). Web 
 | `docs/play-store/` | Google Play mağaza metinleri (TR/EN), görseller, Veri güvenliği cevapları, kapalı test adımları. Play Games kurulumu: `play-games.md`. |
 | `docs/privacy.html` | Gizlilik politikası (GitHub Pages: `https://theaob.github.io/concrete-empire/privacy.html`). |
 | `.github/workflows/ci.yml` | Test → imzalı APK + AAB → (main'de) itch.io. |
+| `.github/workflows/pages.yml` | Web sürümü ve gizlilik politikası GitHub Pages'e: `https://theaob.github.io/concrete-empire/`. Settings › Pages › Source: **GitHub Actions** olmalı. |
 
 ## APK derleme
 

@@ -1,0 +1,42 @@
+name: Pages
+
+# Publishes the web version and the privacy policy to GitHub Pages:
+#   https://theaob.github.io/concrete-empire/          -> the game
+#   https://theaob.github.io/concrete-empire/privacy.html
+# Needs Settings > Pages > Build and deployment > Source: "GitHub Actions" (one-time).
+
+on:
+  push:
+    branches: [main]
+    paths: ['game/**', 'docs/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site
+        run: |
+          mkdir -p _site/play
+          cp -r docs/. _site/
+          cp game/index.html _site/index.html
+          cp game/index.html _site/play/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
