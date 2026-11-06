@@ -6,7 +6,7 @@
 # ---- config ----
 APP_NAME="Concrete Empire"        # shown under the icon and inside the game
 APP_ID="com.onur.concreteempire"   # changing it makes Android treat it as a new app (separate save)
-VERSION_CODE=13
+VERSION_CODE=14
 VERSION_NAME="2.4"
 MIN_SDK=24
 TARGET_SDK=36                       # Google Play: new apps/updates must target API 36 (Android 16) from 31 Aug 2026
@@ -59,6 +59,14 @@ export KEYSTORE KEY_ALIAS
   -PappId="$APP_ID" -PappName="$APP_NAME" -PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME" \
   -PminSdk="$MIN_SDK" -PtargetSdk="$TARGET_SDK" -PbuildTools="$BUILD_TOOLS" \
   assembleRelease bundleRelease
+# Play Console flags androidx.fragment 1.1.0 (pulled in by Play Games) as outdated: fail if it ever comes back.
+FRAG="$("$GRADLE" -p "$B" --no-daemon --console=plain -q \
+  -PappId="$APP_ID" -PminSdk="$MIN_SDK" -PtargetSdk="$TARGET_SDK" -PbuildTools="$BUILD_TOOLS" \
+  dependencies --configuration releaseRuntimeClasspath \
+  | sed -nE 's/.*androidx\.fragment:fragment:([0-9][^ ]*)( -> ([0-9][^ ]*))?.*/\1 \3/p' \
+  | awk '{print ($2 != "" ? $2 : $1)}' | sort -u)"
+echo "androidx.fragment resolved to: ${FRAG:-?}"
+if [ -z "$FRAG" ] || echo "$FRAG" | grep -q '^1\.[0-7]\.'; then echo "androidx.fragment is outdated or missing" >&2; exit 1; fi
 cp "$B/build/outputs/apk/release/"*-release.apk "$OUT"
 cp "$B/build/outputs/bundle/release/"*-release.aab "$AAB"
 
