@@ -14,10 +14,12 @@ import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
 /** Full-screen WebView that runs assets/index.html (the whole game). Saves live in the WebView's localStorage.
- *  window.AndroidGames (PlayGamesBridge) connects the game to Google Play Games Services. */
+ *  window.AndroidGames (PlayGamesBridge) connects the game to Google Play Games Services,
+ *  window.AndroidAds (AdsBridge) to AdMob rewarded ads. */
 public class MainActivity extends Activity {
     private WebView web;
     private PlayGamesBridge games;
+    private AdsBridge ads;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -35,13 +37,16 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setTextZoom(100);
-        // The Play Games library brings network permissions with it; the game page itself stays offline as before.
+        // Play Games and AdMob bring network permissions with them; the game page itself stays offline as before
+        // (rewarded ads open in AdMob's own full-screen activity, not in this WebView).
         s.setBlockNetworkLoads(true);
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView v, String url) { if (games != null) games.refresh(); }
         });
         games = new PlayGamesBridge(this, web);
         web.addJavascriptInterface(games, "AndroidGames");
+        ads = new AdsBridge(this, web);
+        if (ads.enabled()) web.addJavascriptInterface(ads, "AndroidAds");
         setContentView(web);
         hideBars();
         if (Build.VERSION.SDK_INT >= 33) {
@@ -53,6 +58,7 @@ public class MainActivity extends Activity {
         }
         if (state != null) web.restoreState(state);
         else web.loadUrl("file:///android_asset/index.html");
+        ads.start();
     }
 
     private void hideBars() {
@@ -86,5 +92,5 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() { web.destroy(); super.onDestroy(); }
+    protected void onDestroy() { ads.destroy(); web.destroy(); super.onDestroy(); }
 }

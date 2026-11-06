@@ -51,7 +51,7 @@ uygulama adına yazar. Çıktı: `android/out/ConcreteEmpire-<sürüm>.apk` (v1+
 
 Testler: `npm install && npx playwright install chromium && npm test`.
 
-## Mevcut durum (sürüm 2.3)
+## Mevcut durum (sürüm 2.4)
 
 **Arayüz**
 - Üst bar: nakit, anlık kira (₺/sn, güçlendirme açıkken "×2"), net değer, firma seviyesi, itibar, çimento/demir.
@@ -81,7 +81,11 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 **Reklam (ana gelir modeli)**
 - `Ads.showRewarded(placement)` → yalnızca reklam sonuna kadar izlenirse `true`.
   APK'da `window.AndroidAds.showRewarded(placement,id)` köprüsü varsa gerçek reklam; sonucu
-  `window.__adResult(id, ok)` ile bildirir. Köprü yoksa 5 saniyelik yer tutucu reklam gösterilir.
+  `window.__adResult(id, ok, neden)` ile bildirir (`neden`: `noad` = reklam yüklenemedi, `skipped`, `busy`).
+  Köprü yoksa (web) 5 saniyelik yer tutucu reklam gösterilir.
+- **AdMob (Android, v2.4):** `AdsBridge.java`. Açılışta önce UMP izin formu (AEA/BK), sonra Mobile Ads SDK ve bir
+  ödüllü reklam önceden yüklenir; dokunuşta yoksa 8 sn yüklenmesi beklenir. Kimlikler `res/values/admob-ids.xml`
+  (ödüllü birim boşsa reklam kapalı, yer tutucu çalışır). Ayarlar'da GDPR gerektiğinde "Gizlilik seçenekleri" düğmesi çıkar.
 - **Hibe:** Nakit bitince reklam → borçsuz hibe: şantiyenin `30 + 3·(seviye−1)` saniyelik işi (1. seviyede 30 sn, 20.'de 87 sn),
   kalan ihtiyacı aşmaz. Firma seviyesine göre kendiliğinden ayarlanır; hibeyi artıran geliştirme yok (`grantSecs`).
   Reklam hiçbir yerde kredi vermez; banka kredisi ve "Banka ilişkileri" geliştirmesi kaldırıldı. Eski borç sabit %1,5/ay
@@ -95,7 +99,7 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - Kirayla yavaş ilerlerken şantiye ancak 3 sn üst üste nakit yoksa "durdu" olur.
 
 **Android**
-- Paket `com.onur.concreteempire`, son sürüm 2.3.1 (versionCode 13).
+- Paket `com.onur.concreteempire`, son sürüm 2.4 (versionCode 14).
 - Play Games `androidx.fragment` 1.1.0 getiriyor (Play Console "eski SDK" uyarısı); `build.gradle` 1.8.9'a sabitler, `build.sh` 1.1.x geri gelirse derlemeyi durdurur.
 - 1.x sürümleri `com.onur.katkarsiligi` paketindeydi; kayıt Ayarlar > Kayıt kodu ile taşınır.
 - Kayıt anahtarları (`kk-tycoon-*`) eski adla kaldı, değiştirilirse kayıtlar kaybolur.
@@ -109,6 +113,7 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 
 ## Açık işler
 
-- **Gerçek reklam ağı (AdMob):** Uygulama kimliği ve ödüllü reklam birimi kimliği gerekli. Google Mobile Ads
-  kütüphanesi `dl.google.com` / `maven.google.com` üzerinden iner; Java tarafında `AndroidAds` köprüsü yazılacak.
+- **AdMob gerçek kimlikleri:** `android/src/res/values/admob-ids.xml` şimdilik Google'ın test kimliklerini taşıyor
+  (hep "Test Ad" gösterir, para kazandırmaz). Gerçek uygulama + ödüllü birim kimlikleri girilecek; adımlar
+  `docs/play-store/admob.md`.
 - Geliştirmeler sekmesinde ve marka panelinde m²/sn bilgisi hâlâ görünüyor.

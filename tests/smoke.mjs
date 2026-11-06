@@ -1,4 +1,4 @@
-// Smoke test: the game loads in Turkish and English without page errors, and talks to the Play Games bridge.
+// Smoke test: the game loads in Turkish and English without page errors, and talks to the Play Games and AdMob bridges.
 // In English it also lists visible text that still contains Turkish letters (warning only; names are allowed).
 // Usage: node tests/smoke.mjs [path/to/index.html]
 import { chromium } from 'playwright';
@@ -70,6 +70,36 @@ for (const lang of ['tr', 'en']) {
     && has('score', 'firm_level', 6) && has('showAchievements') && !errors.length;
   console.log(`[pgs] settings row ${shown ? 'shown' : 'MISSING'}, bridge calls: ${calls.map(c => c.join(':')).join(', ')}`);
   if (!ok) { console.error('[pgs] Play Games bridge check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
+  await ctx.close();
+}
+// AdMob bridge: with a fake window.AndroidAds a watched ad resolves true, an unavailable ad resolves false with
+// reason 'noad', and the Settings privacy row (GDPR) shows and reaches the bridge.
+{
+  const ctx = await browser.newContext({ viewport: { width: 400, height: 860 }, locale: 'en-US' });
+  await ctx.addInitScript(() => {
+    localStorage.setItem('kk-tycoon-lang-v1', 'en');
+    window.__ads = []; window.__adNext = [true, ''];
+    window.AndroidAds = {
+      showRewarded: (p, id) => { window.__ads.push(['show', p]); const [ok, why] = window.__adNext; setTimeout(() => window.__adResult(id, ok, why), 50); },
+      privacyOptionsRequired: () => true,
+      showPrivacyOptions: () => window.__ads.push(['privacy']),
+    };
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(url);
+  await page.waitForTimeout(500);
+  const watched = await page.evaluate(() => Ads.showRewarded('grant'));
+  const noad = await page.evaluate(async () => { window.__adNext = [false, 'noad']; const ok = await Ads.showRewarded('boost-rent'); return [ok, Ads.why, Ads.failMsg('x')]; });
+  await page.evaluate(() => setTab('set'));
+  const shown = await page.evaluate(() => !document.getElementById('adsSec').hidden);
+  if (shown) await page.click('[data-a="adprivacy"]');
+  const calls = await page.evaluate(() => window.__ads);
+  const ok = watched === true && noad[0] === false && noad[1] === 'noad' && noad[2] !== 'x' && shown
+    && calls.some(c => c[0] === 'privacy') && calls.filter(c => c[0] === 'show').length === 2 && !errors.length;
+  console.log(`[ads] watched=${watched}, unavailable=${JSON.stringify(noad)}, privacy row ${shown ? 'shown' : 'MISSING'}, calls: ${calls.map(c => c.join(':')).join(', ')}`);
+  if (!ok) { console.error('[ads] AdMob bridge check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
   await ctx.close();
 }
 await browser.close();

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Google AdMob ids, from apps.admob.com (Apps > the app > App settings / Ad units).
+     The values below are Google's public TEST ids: they always show a "Test Ad" and never pay. Replace both with
+     the real ones before a release that should earn money.
+     - admob_app_id: must never be empty (the Mobile Ads SDK stops the app at launch without it).
+     - admob_rewarded_unit_id: empty = ads off, the game falls back to its placeholder ad. -->
+<resources>
+    <!-- App ID: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY (with a tilde) -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- Rewarded ad unit ID: ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ (with a slash) -->
+    <string name="admob_rewarded_unit_id" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
+</resources>

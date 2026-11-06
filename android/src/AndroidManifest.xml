@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Java package and app id come from build.gradle (namespace / applicationId, set by build.sh); the label is APP_NAME.
-     Permissions the Play Games library needs are merged in from its own manifest. The game's WebView stays offline (MainActivity). -->
+     Permissions the Play Games and Mobile Ads libraries need (INTERNET, network state) are merged in from their own
+     manifests. The game's WebView stays offline (MainActivity); only the native AdMob ad screens use the network. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- AdMob reads the advertising ID. Play Console: Advertising ID declaration = Yes, Ads = Yes. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <application
         android:name=".App"
         android:label="${appName}"
@@ -13,6 +16,9 @@
         <!-- Play Games Services v2: project id from res/values/games-ids.xml (empty = Play Games off) -->
         <meta-data android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/game_services_project_id" />
+        <!-- AdMob app id from res/values/admob-ids.xml (never empty, or the SDK stops the app) -->
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
