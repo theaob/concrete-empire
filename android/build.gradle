@@ -61,4 +61,6 @@ android {
 
 dependencies {
     implementation 'com.google.android.gms:play-services-games-v2:21.0.0'
+    // Play Games pulls in androidx.fragment 1.1.0, which Play Console flags as outdated; pin a current one.
+    implementation 'androidx.fragment:fragment:1.8.9'
 }

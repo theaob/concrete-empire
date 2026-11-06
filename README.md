@@ -95,7 +95,8 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - Kirayla yavaş ilerlerken şantiye ancak 3 sn üst üste nakit yoksa "durdu" olur.
 
 **Android**
-- Paket `com.onur.concreteempire`, son sürüm 2.3 (versionCode 12).
+- Paket `com.onur.concreteempire`, son sürüm 2.3.1 (versionCode 13).
+- Play Games `androidx.fragment` 1.1.0 getiriyor (Play Console "eski SDK" uyarısı); `build.gradle` 1.8.9'a sabitler, `build.sh` 1.1.x geri gelirse derlemeyi durdurur.
 - 1.x sürümleri `com.onur.katkarsiligi` paketindeydi; kayıt Ayarlar > Kayıt kodu ile taşınır.
 - Kayıt anahtarları (`kk-tycoon-*`) eski adla kaldı, değiştirilirse kayıtlar kaybolur.
 
