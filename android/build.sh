@@ -6,8 +6,8 @@
 # ---- config ----
 APP_NAME="Concrete Empire"        # shown under the icon and inside the game
 APP_ID="com.onur.concreteempire"   # changing it makes Android treat it as a new app (separate save)
-VERSION_CODE=13
-VERSION_NAME="2.3.1"
+VERSION_CODE=14
+VERSION_NAME="2.3.2"
 MIN_SDK=24
 TARGET_SDK=36                       # Google Play: new apps/updates must target API 36 (Android 16) from 31 Aug 2026
 BUILD_TOOLS="${BUILD_TOOLS:-36.0.0}"
