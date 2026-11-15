@@ -339,9 +339,11 @@ h2 .num{font-size:13px;color:var(--muted);letter-spacing:.05em}
 .away b{font-family:var(--f-display);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:.03em}
 .away span{font-size:14px;color:var(--muted)} .away strong{color:var(--ok);font-size:16px}
 #away:empty{display:none}
-.policy{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:13px;margin-bottom:10px}
+.policy{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;font-size:13px;margin-bottom:10px}
 .policy span{color:var(--muted);margin-right:6px}
-.policy button{font:inherit;font-size:13px;padding:5px 10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;cursor:pointer}
+.policy button{font:inherit;font-size:13px;padding:5px 10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;cursor:pointer;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* Phones: the handover choices (sell all / rent half / rent all) always share one row; the "On handover" label goes above them. */
+@media (max-width:420px){.policy:not(.seg){flex-wrap:wrap;row-gap:6px}.policy:not(.seg) span{flex:1 0 100%;font-size:12px}.policy button{flex:1 1 auto;font-size:12.5px;padding:6px 4px;text-align:center}.srow .seg{flex:1 1 100%}}
 .policy button.on{border-color:var(--ink);background:var(--hiviz);color:var(--on-hiviz);font-weight:600}
 .stage-info .policy{margin:0}
 .stepper{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:2px}
@@ -482,7 +484,11 @@ input[type=range]{width:100%;accent-color:var(--rust);height:28px}
 .pos{color:var(--ok)} .neg{color:var(--bad)}
 .note{font-size:13px;padding:8px 11px;border:1px solid var(--line);border-radius:4px;color:var(--muted)}
 .note.warn{border-color:var(--bad);color:var(--bad)}
-@media (max-width:520px){.stat b{font-size:9px}.stat span{font-size:13px}.rankbar{margin-left:0}}
+@media (max-width:520px){.stat b{font-size:9px}.stat span{font-size:13px}.rankbar{margin-left:0}
+  /* Phones: a fixed three-column grid, label above value, so the number of HUD rows depends only on how many stats are shown, never on how big the money gets. */
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 10px;flex:1 1 100%}
+  .stat{flex-direction:column;align-items:flex-start;gap:0;min-width:0;line-height:1.25}
+  .stat b,.stat span{max-width:100%;overflow:hidden;text-overflow:ellipsis}.stat small{font-size:10px}}
 .ticker{display:flex;align-items:stretch;height:24px;background:var(--hud-bg);color:var(--hud-fg);border-top:1px solid #33383c;font-size:12.5px;overflow:hidden}
 .tk-label{flex:none;display:flex;align-items:center;padding:0 12px 0 max(16px,env(safe-area-inset-left,0px));background:var(--hiviz);color:var(--on-hiviz);font-family:var(--f-display);font-weight:800;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
 .tk-view{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 24px),transparent)}
@@ -774,10 +780,15 @@ const rf=([a,b])=>Math.round((a+Math.random()*(b-a))*2)/2;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-/* Money is kept in millions. Turkish: ₺1,4 mn / ₺1,40 mr / ₺350 bin. English: $1.4M / $1.40B / $350K. */
-function fmt(m){const s=m<0?'−':'';m=Math.abs(m);
-  if(LANG==='en'){ if(m>=1000)return s+'$'+(m/1000).toFixed(2)+'B'; if(m>=1)return s+'$'+m.toFixed(m>=100?0:1)+'M'; return s+'$'+Math.round(m*1000)+'K'; }
-  const c=x=>x.replace('.',',');if(m>=1000)return s+'₺'+c((m/1000).toFixed(2))+' mr';if(m>=1)return s+'₺'+c(m.toFixed(m>=100?0:1))+' mn';return s+'₺'+Math.round(m*1000)+' bin'}
+/* Money is kept in millions. Turkish: ₺350 bin / ₺1,4 mn / ₺1,40 mr / ₺12,3 tn. English: $350K / $1.4M / $1.40B / $12.3T.
+   From billions up we keep three significant digits (1,23 / 12,3 / 123) so the HUD values stay the same width as money grows. */
+const BIG_TR=[' mr',' tn',' katr'], BIG_EN=['B','T','Qa'];
+function fmt(m){const s=m<0?'−':'';m=Math.abs(m);const en=LANG==='en',cur=en?'$':'₺',c=x=>en?x:x.replace('.',',');
+  if(m>=999.5){ let i=0,v=m/1000; while(v>=999.5&&i<BIG_EN.length-1){v/=1000;i++;}
+    if(v>=999.5) return s+cur+c(v.toExponential(1).replace('e+','e'))+(en?BIG_EN[i]:BIG_TR[i]);
+    return s+cur+c(v.toFixed(v<9.995?2:v<99.95?1:0))+(en?BIG_EN[i]:BIG_TR[i]); }
+  if(m>=1) return s+cur+c(m.toFixed(m>=99.95?0:1))+(en?'M':' mn');
+  const k=Math.round(m*1000); return k>=1000?s+cur+c('1.0')+(en?'M':' mn'):s+cur+k+(en?'K':' bin');}
 /* Turkish genitive with vowel harmony: Kemal Bey → Kemal Bey'in, Sevim Hanım → Hanım'ın, Halil Amca → Amca'nın */
 function gen(n){if(LANG==='en')return n+"'s";const v=(n.toLowerCase().match(/[aeıioöuü]/g)||['e']).pop();const h={a:'ı',ı:'ı',e:'i',i:'i',o:'u',u:'u',ö:'ü',ü:'ü'}[v];return n+"'"+(/[aeıioöuü]$/i.test(n)?'n':'')+h+'n'}
 document.documentElement.lang=LANG;
