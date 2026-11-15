@@ -38,6 +38,26 @@ for (const lang of ['tr', 'en']) {
   }
   await ctx.close();
 }
+// Phone layout: the four views sit in a bottom bar with thumb-sized buttons, and nothing scrolls sideways.
+{
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, locale: 'tr-TR' });
+  await ctx.addInitScript(() => localStorage.setItem('kk-tycoon-lang-v1', 'tr'));
+  const page = await ctx.newPage();
+  await page.goto(url);
+  await page.waitForTimeout(500);
+  const nav = await page.evaluate(() => {
+    const r = [...document.querySelectorAll('.tab')].map(t => t.getBoundingClientRect());
+    return { bottom: Math.round(Math.max(...r.map(x => x.bottom))), minH: Math.round(Math.min(...r.map(x => x.height))), minW: Math.round(Math.min(...r.map(x => x.width))),
+      vh: innerHeight, overflow: document.documentElement.scrollWidth - innerWidth };
+  });
+  await page.click('#tab-up');
+  const switched = await page.evaluate(() => !document.getElementById('upView').hidden && document.getElementById('gameView').hidden);
+  const small = await page.evaluate(() => [...document.querySelectorAll('button')].filter(b => b.offsetParent && b.getBoundingClientRect().height < 40).map(b => b.textContent.trim().slice(0, 30)));
+  const ok = nav.bottom === nav.vh && nav.minH >= 48 && nav.minW >= 48 && nav.overflow <= 0 && switched && !small.length;
+  console.log(`[phone] nav bottom=${nav.bottom}/${nav.vh}, tab ${nav.minW}x${nav.minH}, sideways overflow=${nav.overflow}, small buttons: ${small.join(' | ') || 'none'}`);
+  if (!ok) { console.error('[phone] bottom navigation / touch target check failed'); failed = true; }
+  await ctx.close();
+}
 // Play Games bridge: with a fake window.AndroidGames the Settings row shows, sign-in reaches the bridge,
 // and once signed in already-earned achievements and scores are sent.
 {
