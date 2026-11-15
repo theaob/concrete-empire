@@ -366,9 +366,9 @@ h2 .num{font-size:13px;color:var(--muted);letter-spacing:.05em}
 .btn.ghostb{background:transparent;color:var(--ink);border-color:var(--line)}
 .noanim *:not(.tk-track),.noanim *:not(.tk-track)::before,.noanim *:not(.tk-track)::after{animation:none!important;transition:none!important}
 .mstat .ar{font-size:9px;margin-left:2px;color:inherit}
-.tab .gear{display:none}.tab .sh{display:none}
+.tab .gear{display:none}.tab .sh{display:none}.boost .bh em{display:none}
 @media (max-width:350px){.tab .lg{display:none}.tab .sh{display:inline}}
-@media (max-width:420px){.tab .gear{display:block}}
+
 .plist{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:4px}
 .prow+.prow{border-top:1px solid var(--line)}
 .prow-h{display:grid;grid-template-columns:minmax(0,1fr) auto auto 14px;gap:6px 12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:10px 12px;cursor:pointer;font:inherit;color:var(--ink)}
@@ -386,7 +386,7 @@ h2 .num{font-size:13px;color:var(--muted);letter-spacing:.05em}
 .tab{font-family:var(--f-display);font-weight:800;font-size:14px;letter-spacing:.04em;text-transform:uppercase;background:transparent;color:var(--hud-muted);border:0;border-radius:2px;padding:4px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .tab[aria-selected="true"]{background:var(--hiviz);color:var(--on-hiviz)}
 .tab:hover:not([aria-selected="true"]){color:var(--hud-fg)}
-@media (max-width:420px){.tab .tl{display:none}.tabs{flex:1 1 100%;min-width:0}.tab{flex:1 1 auto;justify-content:center;padding:4px 4px;font-size:12.5px;letter-spacing:.01em;gap:3px}.tab .badge{padding:0 4px}}
+.tab .ic{display:none}
 .badge{font-family:var(--f-mono);font-size:10.5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--rust);color:#fff;display:inline-flex;align-items:center;justify-content:center}
 .upview{max-width:1180px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:30px}
 .upg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
@@ -502,15 +502,67 @@ input[type=range]{width:100%;accent-color:var(--rust);height:28px}
 .ticker:hover .tk-track{animation-play-state:paused}
 @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes fresh{from{color:var(--hiviz)}to{color:inherit}}
+/* Touch: every control is at least a thumb wide and tall. */
+@media (pointer:coarse),(max-width:640px){
+  .btn,.boost .btn,.card .row .btn,.ch-r .btn,.crew .btn,.uitem .btn,.prow-d .row .btn{min-height:44px}
+  .policy button{min-height:40px}
+  .stepper button,.stepper input{height:44px;min-width:44px}
+  .x,.adhead .x{width:44px;height:44px}
+  .link{padding:12px 6px;margin:-12px -6px}
+  .prow-h{min-height:56px}
+  .qopt{min-height:48px;align-items:center}
+  .skrow{min-height:44px}
+  input[type=range]{height:36px}
+}
+#tWrap.late{order:9}
+.vet .lede.tut{display:none}
+/* Phones: the four views move to a thumb-reach bar at the bottom; the top bar keeps only the numbers. */
+@media (max-width:640px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;gap:0;border-radius:0;background:var(--hud-bg);border-top:1px solid #33383c;box-shadow:0 -2px 12px rgba(0,0,0,.22);padding:0 max(4px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(4px,env(safe-area-inset-left,0px))}
+  .tab{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:1px;min-height:56px;padding:7px 2px 5px;font-size:12.5px;letter-spacing:.03em;border-radius:0;position:relative}
+  .tab .ic,.tab .gear{display:block;width:22px;height:22px}
+  .tab[aria-selected="true"]{background:transparent;color:var(--hiviz);box-shadow:inset 0 3px 0 var(--hiviz)}
+  .tab .badge{position:absolute;top:4px;left:calc(50% + 5px)}
+  .tab:focus-visible{outline-offset:-3px}
+  .yard,.upview{padding-block:16px calc(84px + env(safe-area-inset-bottom,0px));gap:24px}
+  .col{gap:24px}
+  #stageWrap{scroll-margin-top:96px}
+  /* Ad boosts: two tiles side by side instead of two full rows. */
+  .boosts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .boost{flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-left-width:4px}
+  .boost .bh{flex-direction:row;justify-content:space-between;align-items:baseline;gap:6px}
+  .boost .bh b{font-size:17px;white-space:nowrap}
+  .boost .bh span{display:none}
+  .boost .bh em{display:block;font-style:normal;font-size:13px}
+  .boost .btn{padding:6px 4px;white-space:nowrap}
+  /* Site card: phases become a row of dots (the current phase is already named next to the percentage). */
+  .stage{padding:14px}
+  .phases{flex-direction:row;gap:0;border-left:0;margin:2px 0 0}
+  .phases li{flex:1 1 0;height:14px;padding:0;font-size:0}
+  .phases li::before{left:0;top:1px}
+  .phases li::after{content:"";position:absolute;left:12px;right:0;top:6px;height:2px;background:var(--line)}
+  .phases li.done::after{background:var(--ink)}
+  .phases li:last-child{flex:0 0 12px}.phases li:last-child::after{display:none}
+  .stage.handed .phases{display:none}
+  /* Primary actions span the card so they are easy to hit with either thumb. */
+  .card>.row>.btn,.stage-info>.row>.btn,.prow-d .row .btn,.sbtns .btn,.negs .neg-r>.row:last-child .btn,.away .btn{flex:1 1 auto;text-align:center}
+  .srow>[id]{flex:1 1 100%}
+  .seg button{flex:1 1 0;text-align:center}
+  .ch{gap:8px}
+  h2{flex-wrap:wrap;column-gap:10px;row-gap:0}
+  .prow-h{grid-template-columns:minmax(0,1fr) 14px;row-gap:2px}
+  .prow-k{grid-column:1;grid-row:2;text-align:left;white-space:normal}
+  .prow-h .chev{grid-column:2;grid-row:1/3}.prow-h .chip{display:none}
+}
 @media all{.bsvg .jib{animation:sway 7s ease-in-out infinite;transform-box:view-box}.bsvg .hk{animation:bob 2.4s ease-in-out infinite}}
 </style>
 
 <header class="hud" lang="tr">
   <div class="hud-in">
     <nav class="tabs" role="tablist" aria-label="Görünüm" data-en-aria-label="View">
-      <button class="tab" role="tab" id="tab-game" aria-selected="true" aria-controls="gameView" data-a="tab" data-c="game" data-en="Site">Şantiye</button>
-      <button class="tab" role="tab" id="tab-up" aria-selected="false" aria-controls="upView" data-a="tab" data-c="up"><span class="lg" data-en="Upgrades">Geliştirmeler</span><span class="sh" data-en="Upgr.">Gelişim</span> <span class="badge" id="upBadge" hidden></span></button>
-      <button class="tab" role="tab" id="tab-day" aria-selected="false" aria-controls="dayView" data-a="tab" data-c="day"><span data-en="Tasks">Görevler</span> <span class="badge" id="dayBadge" hidden></span></button>
+      <button class="tab" role="tab" id="tab-game" aria-selected="true" aria-controls="gameView" data-a="tab" data-c="game"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M3 7h16M5 4l14 3M17 7v4M15 11h4v3h-4zM2 21h9M13 21v-4h8v4"/></svg><span data-en="Site">Şantiye</span></button>
+      <button class="tab" role="tab" id="tab-up" aria-selected="false" aria-controls="upView" data-a="tab" data-c="up"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span class="lg" data-en="Upgrades">Geliştirmeler</span><span class="sh" data-en="Upgr.">Gelişim</span> <span class="badge" id="upBadge" hidden></span></button>
+      <button class="tab" role="tab" id="tab-day" aria-selected="false" aria-controls="dayView" data-a="tab" data-c="day"><svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6v3H9zM9 5H6v16h12V5h-3M9 14l2 2 4-5"/></svg><span data-en="Tasks">Görevler</span> <span class="badge" id="dayBadge" hidden></span></button>
       <button class="tab" role="tab" id="tab-set" aria-selected="false" aria-controls="setView" data-a="tab" data-c="set" aria-label="Ayarlar" data-en-aria-label="Settings"><svg class="gear" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg><span class="tl" data-en="Settings">Ayarlar</span></button>
     </nav>
     <div class="stats" id="stats"></div>
@@ -532,12 +584,12 @@ input[type=range]{width:100%;accent-color:var(--rust);height:28px}
     </section>
     <section id="lWrap">
       <h2><span data-en="Next plot">Sıradaki parsel</span> <span class="num" id="lCount"></span></h2>
-      <p class="lede" data-en="The landowner provides the plot; you build out of your own pocket and hand over the agreed number of units to them. The remaining units are yours to sell. When the site is done, one plot comes up next; if the owner walks away from the table, a new one arrives right away.">Ev sahibi arsayı verir; sen kendi cebinden inşa eder, anlaşılan sayıda daireyi ona teslim edersin. Kalan daireler senin, satarsın. Şantiye bitince sıraya tek bir parsel gelir; ev sahibi masadan kalkarsa yenisi hemen gelir.</p>
+      <p class="lede tut" data-en="The landowner provides the plot; you build out of your own pocket and hand over the agreed number of units to them. The remaining units are yours to sell. When the site is done, one plot comes up next; if the owner walks away from the table, a new one arrives right away.">Ev sahibi arsayı verir; sen kendi cebinden inşa eder, anlaşılan sayıda daireyi ona teslim edersin. Kalan daireler senin, satarsın. Şantiye bitince sıraya tek bir parsel gelir; ev sahibi masadan kalkarsa yenisi hemen gelir.</p>
       <div class="grid" id="listings"></div>
     </section>
     <section id="projWrap">
       <h2><span data-en="Your buildings">Binaların</span> <span class="num" id="pCount"></span></h2>
-      <p class="lede" data-en="The rule you pick is applied automatically to handed-over buildings. Units for sale sell every week; rented units pay rent every month.">Teslim edilen binalarda seçtiğin kural otomatik uygulanır. Satıştaki daireler her hafta satılır, kiradakiler her ay kira getirir.</p>
+      <p class="lede tut" data-en="The rule you pick is applied automatically to handed-over buildings. Units for sale sell every week; rented units pay rent every month.">Teslim edilen binalarda seçtiğin kural otomatik uygulanır. Satıştaki daireler her hafta satılır, kiradakiler her ay kira getirir.</p>
       <div id="policyBar"></div>
       <div class="plist" id="projects"></div>
     </section>
@@ -911,7 +963,7 @@ function addBoost(k){ const b=S.boost=S.boost||{}; b[k]=Math.min(Date.now()+BOOS
 const fmtLeft=ms=>{ const s=Math.ceil(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
 function boostsHTML(){
   const one=(k,icon,name,what)=>{ const left=boostLeft(k), on=left>0, full=left>(BOOST_MAX-BOOST_MIN)*60000;
-    return `<div class="boost${on?' on':''}"><div class="bh"><b>${icon} ${name}</b><span>${on?T(`Aktif · ${fmtLeft(left)} kaldı`,`Active · ${fmtLeft(left)} left`):what}</span></div>
+    return `<div class="boost${on?' on':''}"><div class="bh"><b>${icon} ${name}</b><span>${on?T(`Aktif · ${fmtLeft(left)} kaldı`,`Active · ${fmtLeft(left)} left`):what}</span>${on?`<em class="num">${fmtLeft(left)}</em>`:''}</div>
       <button class="btn${on?' ghost':''}" data-a="boost" data-c="${k}" ${full?'disabled':''}><span class="adtag">${T('REKLAM','AD')}</span> ${on?T(`+${BOOST_MIN} dk`,`+${BOOST_MIN} min`):T(`${BOOST_MIN} dk aç`,`${BOOST_MIN} min`)}</button></div>`; };
   return `<div class="boosts">${one('rent','🏠',T('Kira ×2','Rent ×2'),T('Tüm kira gelirin iki katı','Doubles all rent income'))}${one('speed','⚡',T('Hız ×2','Speed ×2'),T('İnşaat iki kat hızlı','Builds go twice as fast'))}</div>`;
 }
@@ -1474,6 +1526,10 @@ function stageHTML(p){
     </div>`; })():'';
   const sub=ph===2?T(`KARKAS KAT ${Math.min(p.fl,frameN+1)}/${p.fl}`,`FRAME FLOOR ${Math.min(p.fl,frameN+1)}/${p.fl}`):UP(PHASES[ph][1]);
   const info=building?`
+      ${short||p.stalled?`<p class="note warn">${T('Nakit bitince şantiye durur. Maketten daire satabilir ya da reklam izleyip hibe alabilirsin.','When cash runs out the site stops. Sell units off-plan or watch an ad for a grant.')}</p>`:''}
+      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="grant" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}
+      ${p.stalled&&grantOffer(p)<0.5&&(p.sold>=p.dev||S.cash<weekly)?`<div class="row"><button class="btn ghost" data-a="abandon" data-id="${p.id}">${T(`Şantiyeyi devret · ${fmt(p.spent*0.3)} geri al, itibar −6`,`Hand off site · recover ${fmt(p.spent*0.3)}, Reputation −6`)}</button></div>`:''}
+      <div class="row"><button class="btn ghost wide" data-a="presell" data-id="${p.id}" ${p.sold<p.dev?'':'disabled'}>${T('Maketten daire sat','Sell a unit off-plan')} · ${fmt(P*presellK())}</button></div>
       <dl class="kv big">
         <dt>${T('Karkas','Frame')}</dt><dd>${T(`${frameN} / ${p.fl} kat`,`${frameN} / ${p.fl} floors`)}</dd>
         <dt>${T('İnşaat','Built')}</dt><dd>${fmtM2(p.m2Done||0)} / ${fmtM2(p.m2Tot)} m²</dd><dt>${T('Kalan süre','Time left')}</dt><dd>~${weeksLeft} ${T('sn','s')}</dd>
@@ -1481,11 +1537,7 @@ function stageHTML(p){
         <dt>${T('Kalan maliyet','Cost to finish')}</dt><dd>${fmt(remaining)}</dd>
         <dt>${T('Nakit yeter','Cash lasts')}</dt><dd class="${short?'neg':'pos'}">${runway>=999?T('rahat','plenty'):runway+T(' sn',' s')}</dd>
         <dt>${T('Daireler','Units')}</dt><dd>${T(`${p.dev} sen · ${p.o} ev sahibi`,`${p.dev} yours · ${p.o} owner`)}</dd>
-      </dl>
-      ${short||p.stalled?`<p class="note warn">${T('Nakit bitince şantiye durur. Maketten daire satabilir ya da reklam izleyip hibe alabilirsin.','When cash runs out the site stops. Sell units off-plan or watch an ad for a grant.')}</p>`:''}
-      ${(short||p.stalled)&&grantOffer(p)>=0.5?`<div class="row"><button class="btn wide" data-a="grant" data-id="${p.id}"><span class="adtag">${T('REKLAM','AD')}</span> ${T('Reklam izle, hibe al','Watch ad, get a grant')} · ${fmt(Math.floor(grantOffer(p)*2)/2)}</button></div>`:''}
-      ${p.stalled&&grantOffer(p)<0.5&&(p.sold>=p.dev||S.cash<weekly)?`<div class="row"><button class="btn ghost" data-a="abandon" data-id="${p.id}">${T(`Şantiyeyi devret · ${fmt(p.spent*0.3)} geri al, itibar −6`,`Hand off site · recover ${fmt(p.spent*0.3)}, Reputation −6`)}</button></div>`:''}
-      <div class="row"><button class="btn ghost wide" data-a="presell" data-id="${p.id}" ${p.sold<p.dev?'':'disabled'}>${T('Maketten daire sat','Sell a unit off-plan')} · ${fmt(P*presellK())}</button></div>`
+      </dl>`
     :p.status==='decide'?(()=>{ const free=p.dev-p.sold, h=Math.floor(free/2), rf=rentPerFlat(p), uN=n=>n===1?'unit':'units';
       return `<div class="decide" role="group" aria-label="${T('Satış veya kira kararı','Sell or rent decision')}">
         <div class="decide-h"><b>${T('Daireler ne olsun?','What about the units?')}</b><span>${T(`${free} dairen hazır${p.sold?` (${p.sold} daire maketten satılmıştı)`:''}. Kira her ay kasaya girer.`,`${free} ${uN(free)} ready${p.sold?` (${p.sold} sold off-plan)`:''}. Rent comes in every month.`)}</span></div>
@@ -1890,7 +1942,7 @@ function render(){
   if(sp&&sp.kind!=='tender') PICQ=sp;
   out['#boosts']=boostsHTML();
   out['#away']=S.away?`<div class="away"><div><b>${T('Sen yokken','While you were away')}</b><span>${T(`${fmtDur(S.away.secs)} boyunca kiracılar ödedi:`,`Tenants paid over ${fmtDur(S.away.secs)}:`)} <strong class="num">${fmt(S.away.amt)}</strong>${S.away.capped?T(' (en fazla 7 günlük kira birikir)',' (rent piles up for 7 days max)'):''}</span></div><button class="btn" data-a="awayok">${T('Kasaya aldım','Bank it')}</button></div>`:'';
-  out['#tenders']=tendersHTML(); $('#tCount').textContent=firmLv()>=TENDER_LV&&(S.tenders||[]).length?(S.tenders.length+T(' İHALE',S.tenders.length===1?' TENDER':' TENDERS')):'';
+  out['#tenders']=tendersHTML(); $('#tWrap').classList.toggle('late',firmLv()<TENDER_LV); document.body.classList.toggle('vet',firmLv()>=3); $('#tCount').textContent=firmLv()>=TENDER_LV&&(S.tenders||[]).length?(S.tenders.length+T(' İHALE',S.tenders.length===1?' TENDER':' TENDERS')):'';
 
   /* listings */
   $('#lCount').textContent=''; $('#lWrap').hidden=busy();
@@ -1916,7 +1968,7 @@ function render(){
   const others=S.projects.filter(p=>p.id!==S.stageId);
   $('#projWrap').hidden=false;
   $('#pCount').textContent=others.length?others.length+T(' BİNA',others.length===1?' BUILDING':' BUILDINGS')+(others.some(x=>x.rentN)?T(` · AYDA ${UP(fmt(others.reduce((a,x)=>a+rentOf(x),0)))} KİRA`,` · ${UP(fmt(others.reduce((a,x)=>a+rentOf(x),0)))}/MO RENT`):''):'';
-  out['#policyBar']=policyHTML();
+  out['#policyBar']=sp&&sp.status==='build'&&sp.kind!=='tender'?'':policyHTML();   // while building, the same choice sits on the site card
   if(TAB==='set'){ out['#setLang']=segHTML('Dil · Language','lang',[['tr','Türkçe'],['en','English']],LANG,'lang');
     out['#setTheme']=segHTML(T('Tema','Theme'),'theme',[['auto',T('Otomatik','Auto')],['light',T('Açık','Light')],['dark',T('Koyu','Dark')]],SET.theme);
     out['#setTicker']=segHTML(T('Haber şeridi','News ticker'),'ticker',[['on',T('Açık','On')],['off',T('Kapalı','Off')]],SET.ticker?'on':'off');

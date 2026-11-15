@@ -57,6 +57,8 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 **Arayüz**
 - Üst bar: nakit, anlık kira (₺/sn, güçlendirme açıkken "×2"), net değer, firma seviyesi, itibar, çimento/demir.
   İnşaat hızı (m²/sn) üst barda gösterilmez.
+- Telefonda (≤640 px) dört görünüm ekranın altındaki gezinme çubuğundadır; üst barda yalnız sayılar kalır.
+  Dokunulan her düğme en az 40–44 px yüksekliğindedir (tests/smoke.mjs bunu denetler).
 - Şantiye başlığında yüzde / "Teslim" damgası tek satırda kalır.
 - "Maketten daire sat" ve hibe butonları tam genişlik.
 - Ayarlar en altında "Concrete Empire · Sürüm X".
