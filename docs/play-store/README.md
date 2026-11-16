@@ -154,6 +154,10 @@ Aktarımda şifreli: Evet. Reklam verisi zorunlu (reklam izlemek isteğe bağlı
 "Reklamlar: Evet" ve "Reklam kimliği: Evet" beyanları v2.4 AAB'si ile **aynı anda** gönderilmeli; manifest'teki
 `com.google.android.gms.permission.AD_ID` izni bu sürümde eklendi. AdMob kurulumu: [admob.md](admob.md).
 
+**Bildirimler (hatırlatmalar):** Uygulama `POST_NOTIFICATIONS` izni ister (Android 13+). Hatırlatmalar cihazda
+zamanlanan yerel bildirimlerdir; sunucu, push servisi veya Firebase yok, hiçbir veri gönderilmez. Veri güvenliği
+formuna **eklenecek satır yok**, Play Console'da ayrıca izin beyanı da gerekmez.
+
 ---
 
 ## Kapalı test ve 14 gün kuralı

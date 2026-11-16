@@ -5,6 +5,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- AdMob reads the advertising ID. Play Console: Advertising ID declaration = Yes, Ads = Yes. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    <!-- Local reminders while the game is closed (Android 13+ asks the player; the game asks at a quiet moment). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".App"
         android:label="${appName}"
@@ -30,5 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Shows the reminders NotifyBridge schedules with AlarmManager. Not exported: only our own alarms reach it. -->
+        <receiver android:name=".NotifyReceiver" android:exported="false" />
     </application>
 </manifest>
