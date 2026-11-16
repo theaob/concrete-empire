@@ -117,7 +117,7 @@ for (const lang of ['tr', 'en']) {
     const l = S.listings[0], U = unitsOf(l); l.ask = 90; openNeg(l.id);
     const zone = !!document.querySelector('#neg .zone .ok');
     agreeAsk(); const needsSecondTap = N.sure === true && !N.deal;
-    l.ask = (beF(l) + 0.5) / U * 100; N.sure = false; N.o = U; makeOffer();
+    l.ask = beF(l) / U * 100; N.sure = false; N.o = U; makeOffer();
     const capped = !!N.deal && N.deal.o === askF(l);
     closeNeg(); openNeg(l.id); const kept = !!N.deal && N.deal.o === askF(l);
     const pat = l.pat; undoDeal(); const undone = !N.deal && !l.deal && l.pat === pat - 1;
