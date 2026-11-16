@@ -98,6 +98,37 @@ for (const lang of ['tr', 'en']) {
   if (!ok) { console.error('[auto] estate manager / time away check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
   await ctx.close();
 }
+// Haggling: every generated plot has a profitable deal at the owner's bottom line, a losing ask needs a second tap,
+// an offer above the ask is capped at the ask, a handshake survives closing the sheet, and it can be called off.
+{
+  const ctx = await browser.newContext({ viewport: { width: 400, height: 860 }, locale: 'en-US' });
+  await ctx.addInitScript(() => localStorage.setItem('kk-tycoon-lang-v1', 'en'));
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(url);
+  await page.waitForTimeout(500);
+  const r = await page.evaluate(() => {
+    S.auto = false;
+    let bad = 0;
+    for (const rep of [0, 1, 3, 6]) for (const lv of [1, 3, 8]) { S.rep = rep; S.lv = lv;
+      for (let i = 0; i < 100; i++) { S.listings = []; const l = genListing(); if (Math.max(1, resF(l)) > beF(l)) bad++; } }
+    S.rep = 0; S.lv = 1; S.listings = []; refill();
+    const l = S.listings[0], U = unitsOf(l); l.ask = 90; openNeg(l.id);
+    const zone = !!document.querySelector('#neg .zone .ok');
+    agreeAsk(); const needsSecondTap = N.sure === true && !N.deal;
+    l.ask = (beF(l) + 0.5) / U * 100; N.sure = false; N.o = U; makeOffer();
+    const capped = !!N.deal && N.deal.o === askF(l);
+    closeNeg(); openNeg(l.id); const kept = !!N.deal && N.deal.o === askF(l);
+    const pat = l.pat; undoDeal(); const undone = !N.deal && !l.deal && l.pat === pat - 1;
+    closeNeg(); skipPlot(l.id); const skipped = S.listings.length === 1 && S.listings[0].id !== l.id;
+    return { bad, zone, needsSecondTap, capped, kept, undone, skipped };
+  });
+  const ok = r.bad === 0 && r.zone && r.needsSecondTap && r.capped && r.kept && r.undone && r.skipped && !errors.length;
+  console.log(`[haggle] unwinnable plots=${r.bad}/1200, range bar=${r.zone}, loss needs 2nd tap=${r.needsSecondTap}, over-ask capped=${r.capped}, handshake kept=${r.kept}, called off=${r.undone}, skipped=${r.skipped}`);
+  if (!ok) { console.error('[haggle] negotiation check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
+  await ctx.close();
+}
 // AdMob bridge: with a fake window.AndroidAds a watched ad resolves true, an unavailable ad resolves false with
 // reason 'noad', and the Settings privacy row (GDPR) shows and reaches the bridge.
 {
