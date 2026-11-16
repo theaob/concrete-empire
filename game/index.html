@@ -454,6 +454,20 @@ td:first-child{font-family:var(--f-body)}
 .askbox b small{font-family:var(--f-body);font-size:16px;color:var(--hud-muted);letter-spacing:0}
 .askbox .itib{flex-basis:100%;margin:0;font-size:12px} .askbox .itib.up{color:#7fd3a2} .askbox .itib.down{color:#f0897d}
 .askbox .scout{flex-basis:100%;margin:0;font-size:12px;color:var(--hiviz)}
+.askbox .fb{flex-basis:100%;margin:0;font-size:12.5px;color:var(--hud-fg)} .askbox .fb.bad{color:#f0897d} .askbox .fb.good{color:#7fd3a2}
+.askbox .mood.last span{color:#f0897d;font-weight:600}
+/* Where the offer stands: profitable range, the owner's ask and your last offer, under the slider */
+.zone{position:relative;height:6px;margin:0 8px;border-radius:3px;background:color-mix(in srgb,var(--bad) 55%,transparent)}
+.zone .ok{position:absolute;inset:0 auto 0 0;border-radius:3px 0 0 3px;background:var(--ok)}
+.zone .t{position:absolute;top:-4px;width:3px;height:14px;margin-left:-1.5px;border-radius:1px;background:var(--ink)}
+.zone .t.last{background:var(--hiviz);box-shadow:0 0 0 1px var(--ink)}
+.zleg{display:flex;gap:4px 12px;flex-wrap:wrap;margin:4px 0 0;font-size:12px;color:var(--muted)}
+.zleg span{display:inline-flex;align-items:center;gap:5px} .zleg b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.zleg i{width:10px;height:6px;border-radius:2px;background:var(--ok)} .zleg i.ask{width:3px;height:12px;background:var(--ink)} .zleg i.last{width:3px;height:12px;background:var(--hiviz);box-shadow:0 0 0 1px var(--ink)}
+.ctl .cashv{font-size:12px;color:var(--muted);margin:0}
+.qopt em{font-style:normal;font-family:var(--f-mono);font-size:12px;flex-basis:100%}
+.btn.ghost.risk{border-color:var(--bad);color:var(--bad)}
+.negs .row .link{margin-left:auto}
 .chat{display:flex;flex-direction:column;gap:8px;min-height:150px;max-height:min(34vh,300px);overflow:auto;padding:10px;background:var(--bg);border-radius:4px;scroll-behavior:smooth}
 @media (max-width:759px){
   .chat{min-height:120px;max-height:32vh}
@@ -715,24 +729,28 @@ const LINES={
   greedy:{
     open:T(["Kapımda müteahhit kuyruğu var. {n} daire isterim, aşağısı yok.","Komşum geçen sene iyi bir anlaşma yaptı. {n} daire derseniz konuşuruz.","Böyle arsa iki kere çıkmaz. {u} dairenin {n} tanesi benim."],["Developers are queuing at my door. I want {n} units, not one less.","My neighbour got a sweet deal last year. Say {n} units and we can talk.","A plot like this never comes twice. {n} of the {u} units are mine."]),
     counter:T(["Hmm. {n} daire, bu da cömertliğimden.","Daha iyisini yapmalısınız. {n} daire.","Yeğenim {n} daire makul diyor. Kendisi avukat."],["Hmm. {n} units, and that's me being generous.","You'll have to do better. {n} units.","My nephew says {n} units is fair. He's a lawyer."]),
+    near:T(["Eh, yaklaşıyoruz. {n} daire.","Şimdi konuşmaya başladık. {n} daire deyin, bitsin."],["Well, we're getting close. {n} units.","Now we're talking. Say {n} units and we're done."]),
     insult:T(["Şaka mı yapıyorsunuz? Başka müteahhit çağırırım.","Rahmetli babamın arsasına hakaret bu."],["Is this a joke? I'll call another developer.","That's an insult to my late father's land."]),
     accept:T(["Peki. Noteri ayarlayın.","Anlaştık. Ama cadde cepheli daireler benim."],["Fine. Book the notary.","Deal. But the street-facing units are mine."]),
     leave:T(["Yeter. Bankanın getirdiği firmayla imzalıyorum."],["Enough. I'm signing with the firm the bank sent."])},
   stubborn:{
     open:T(["{n} daire. Arsanın değeri bu.","Pazarlık yapmam. {n} daire."],["{n} units. That's what the land is worth.","I don't haggle. {n} units."]),
     counter:T(["{n} daire.","Dedim ya... Peki. {n} daire."],["{n} units.","I told you... Fine. {n} units."]),
+    near:T(["...Yakın. {n} daire.","Az kaldı. {n} daire."],["...Close. {n} units.","Nearly. {n} units."]),
     insult:T(["Hayır.","Çayımı boşa içirmeyin."],["No.","Don't waste my tea."]),
     accept:T(["...Tamam. İmzalayalım.","Hıh. Anlaştık."],["...Okay. Let's sign.","Hmph. Deal."]),
     leave:T(["Bu iş burada biter."],["This ends here."])},
   sentimental:{
     open:T(["Çocuklarım bu evde büyüdü. {n} daire isterim, herkese bir yuva olsun.","İncir ağacına dokunmayacağınıza söz verir misiniz? Ben {n} daire diye düşünüyordum."],["My kids grew up in this house. I'd like {n} units, a home for each of them.","Promise you won't touch the fig tree? I was thinking {n} units."]),
     counter:T(["Torunları bir düşüneyim... {n} daire olur mu?","Efendi birine benziyorsunuz. O zaman {n} daire."],["Let me think of the grandkids... how about {n} units?","You seem like a decent sort. {n} units, then."]),
+    near:T(["Aramızda pek bir şey kalmadı evladım. {n} daire olsun.","Gönlüm olmaya başladı. {n} daire?"],["There's not much between us now, dear. Make it {n} units.","I'm warming to it. {n} units?"]),
     insult:T(["Ah. Buranın benim için ne demek olduğunu anladığınızı sanmıştım."],["Oh. I thought you understood what this place means to me."]),
     accept:T(["O zaman tamam. Bitince çaya buyurun.","Peki evladım. Güzel yap ama."],["All right then. Come for tea when it's done.","Okay, dear. Build it nicely, though."]),
     leave:T(["Kusura bakmayın, içim el vermiyor artık."],["I'm sorry, my heart just isn't in it anymore."])},
   desperate:{
     open:T(["Kapatmam gereken borçlar var. {n} daire, peşin biraz nakit de çok işime yarar.","{n} daire... ama açıkçası şu an nakit daha çok konuşur."],["I've got debts to clear. {n} units, and some cash up front would really help.","{n} units... but honestly, cash talks louder right now."]),
     counter:T(["Biraz nakit ekleyebilir misiniz? Yoksa {n} daire.","{n} daire. Banka her gün arıyor, biliyor musunuz?"],["Could you add some cash? Otherwise {n} units.","{n} units. The bank calls every day, you know?"]),
+    near:T(["Neredeyse anlaştık. {n} daire, ya da azıcık nakit.","Çok yaklaştık. {n} daire."],["We're nearly there. {n} units, or a little cash.","So close. {n} units."]),
     insult:T(["Darda olabilirim ama saf değilim."],["I may be broke, but I'm not naive."]),
     accept:T(["Çok şükür. Nereyi imzalıyorum?","Tamam. Nakit bu hafta gelebilir mi?"],["Thank goodness. Where do I sign?","Okay. Can the cash come this week?"]),
     leave:T(["Başka biri peşin teklif etti. Kusura bakmayın."],["Someone else offered cash up front. Sorry."])}
@@ -988,10 +1006,13 @@ function gainXp(n){
 }
 function genListing(){
   const d=pickDistrict(),D=DISTRICTS[d],type=pick(Object.keys(TYPES)),T=TYPES[type];
-  const b=itiPts(), res=Math.max(20,rf(T.res)-b), ask=Math.max(res+2,Math.min(85,res+rf(T.gap))), pat=Math.max(2,T.pat+itiPat()+Math.max(0,up('scout')-2));
+  const L=firmLv(), fl=ri(D.fl)+lvFloors(L), upf=Math.min(6,ri(D.upf)+lvUpf(L)), blocks=Math.max(1,Math.min(blockCap(L),Math.ceil(m2ps()*MIN_SECS/((fl+Math.floor(E('arch')+1e-9))*upf*100))));
+  /* The owner's bottom line is a share, but deals are struck in whole flats (rounded up). Keep it at or below
+     the last flat count that still leaves a profit of ~3 points, so no plot is a guaranteed loss. */
+  const U=(fl+Math.floor(E('arch')+1e-9))*upf*blocks, capF=Math.floor(((1-unitCost(d)/estSale(d,'std'))*100-3)/100*U+1e-9);
+  const b=itiPts(), res=Math.min(Math.max(20,rf(T.res)-b),Math.max(1,capF)/U*100), ask=Math.max(res+2,Math.min(85,res+rf(T.gap))), pat=Math.max(2,T.pat+itiPat()+Math.max(0,up('scout')-2));
   const used=new Set(S.listings.map(l=>l.name));
   let name=pick(NAMES); for(let i=0;i<5&&used.has(name);i++) name=pick(NAMES);
-  const L=firmLv(), fl=ri(D.fl)+lvFloors(L), upf=Math.min(6,ri(D.upf)+lvUpf(L)), blocks=Math.max(1,Math.min(blockCap(L),Math.ceil(m2ps()*MIN_SECS/((fl+Math.floor(E('arch')+1e-9))*upf*100))));
   return {id:S.nextId++,d,type,name,flav:fl*upf*blocks>30?pick(BIG_FLAVOR):pick(FLAVOR),fl,upf,blocks,res,ask,ask0:ask,itiB:b,pat,patMax:pat,ttl:ri([6,10]),talked:false,chat:[]};
 }
 /* The queue holds exactly one parcel, and it shows up only when the site is free. */
@@ -1017,6 +1038,10 @@ addEventListener('resize',()=>{clearTimeout(renderTicker.r);renderTicker.r=setTi
 const askF=l=>Math.min(unitsOf(l),Math.ceil(l.ask/100*unitsOf(l)-1e-9));
 const resF=l=>Math.ceil(effRes(l)/100*unitsOf(l)-1e-9);
 const flatsFromPts=(pts,U)=>Math.round(Math.abs(pts)/100*U);
+/* What one of your flats is expected to sell for: the same factors priceOf() books at handover. */
+const estSale=(d,q)=>brandMul()*price(d)*QUAL[q||'std'].price*(1+E('design'));
+/* Break-even: the most flats the owner can take while a standard-quality build still makes money. */
+const beF=l=>{ const U=unitsOf(l); return clamp(Math.ceil(U*(1-unitCost(l.d)/estSale(l.d,'std'))-1e-9)-1,0,U); };
 function line(l,kind){return pick(LINES[l.type][kind]).replace('{n}',askF(l)).replace('{u}',unitsOf(l))}
 function toast(t){addLog(t,'badt')}
 
@@ -1916,9 +1941,10 @@ function render(){
         <dl class="kv" style="flex:1">
           <dt>${T('Daire','Units')}</dt><dd>${U}</dd>
           <dt>${l.talked?T('Güncel talep','Current ask'):T('İlk talep','Opening ask')}</dt><dd>${askF(l)} ${T('daire',askF(l)===1?'unit':'units')}</dd>${l.itiB&&flatsFromPts(l.itiB,U)?`<dt>${T('İtibar etkisi','Reputation effect')}</dt><dd class="${l.itiB>0?'pos':'neg'}">${l.itiB>0?'−':'+'}${flatsFromPts(l.itiB,U)} ${T('daire',flatsFromPts(l.itiB,U)===1?'unit':'units')}</dd>`:''}
+          <dt>${T('Kâr eşiği','Break-even')}</dt><dd>${T(`en çok ${beF(l)} daire`,`${beF(l)} ${beF(l)===1?'unit':'units'} at most`)}</dd>
           <dt>${T('Ev sahibi','Owner')}</dt><dd style="font-family:var(--f-body)">${temper}</dd>${hint}
         </dl></div>
-      <div class="row"><button class="btn" data-a="talk" data-id="${l.id}" ${busy()?'disabled':''}>${busy()?T('İnşaat sürüyor','Build in progress'):l.talked?T('Görüşmeye dön','Resume talks'):T('Pazarlık et','Haggle')}</button></div>
+      <div class="row"><button class="btn" data-a="talk" data-id="${l.id}" ${busy()?'disabled':''}>${busy()?T('İnşaat sürüyor','Build in progress'):l.deal?T('İmzaya dön','Back to signing'):l.talked?T('Görüşmeye dön','Resume talks'):T('Pazarlık et','Haggle')}</button>${busy()?'':`<button class="link" data-a="skip" data-id="${l.id}">${T('Bu parseli geç','Skip this plot')}</button>`}</div>
       ${autoHTML(l)}
     </article>`}).join(''):`<div class="empty">${T('Sıradaki parsel hazırlanıyor.','Next plot is on its way.')}</div>`;
 
@@ -1975,7 +2001,9 @@ function render(){
 /* Negotiation */
 function openNeg(id){
   const l=S.listings.find(x=>x.id===id); if(!l||busy()) return;
-  N={lid:id,o:Math.round(unitsOf(l)*0.4),c:0,deal:null,gone:false,q:'std',sk:{}};
+  const U=unitsOf(l);
+  /* Pick up where the talks stopped: a handshake (l.deal) and the last offer (l.last) stay on the plot. */
+  N={lid:id,o:l.last?clamp(l.last.o,0,U):Math.max(0,Math.min(Math.round(U*0.4),askF(l)-1)),c:l.last?l.last.c:0,deal:l.deal||null,gone:false,q:'std',fb:null};
   if(!l.chat.length) l.chat.push({w:'them',t:line(l,'open')});
   $('#neg').hidden=false; renderNeg();
   setTimeout(()=>$('#sO')?.focus(),30);
@@ -1983,40 +2011,52 @@ function openNeg(id){
 function closeNeg(){N=null;TN=null;$('#neg').hidden=true;$('#neg').innerHTML='';render()}
 function negListing(){return S.listings.find(x=>x.id===N.lid)}
 function maxCash(l){return Math.max(0,Math.floor(Math.min(S.cash,unitsOf(l)*price(l.d)*0.25)*2)/2)}
+/* What a cash sweetener is worth to this owner, in share points (and so in flats). */
+const cashPts=(l,c)=>c/(unitsOf(l)*price(l.d))*100*TYPES[l.type].cash*(1+E('lawyer'));
+/* Expected profit of a deal: o flats to the owner, c cash, build quality q. */
+function dealProfit(l,o,c,q){ const U=unitsOf(l); return (U-o)*estSale(l.d,q)-U*unitCost(l.d)*QUAL[q||'std'].cost-(c||0); }
 function renderNeg(){
   const l=negListing(), el=$('#neg');
   if(!l){ if(N&&N.gone){/* already rendered */} else closeNeg(); return; }
   const U=unitsOf(l), fl=floorsOf(l), TY=TYPES[l.type], D=DISTRICTS[l.d];
   const full=activeBuilds()>=maxSites();
-  const askUnits=Math.ceil(l.ask/100*U);
+  const askUnits=askF(l), be=beF(l), units=n=>T('daire',n===1?'unit':'units');
   const mc=maxCash(l); N.c=Math.min(N.c,mc);
   let body;
   if(N.deal){
-    const Q=QUAL[N.q], dev=U-N.deal.o, total=U*unitCost(l.d)*Q.cost, sk=[];
-    const skGain=sk.reduce((a,k)=>a+DECS[k].w*total*SKIM_GAIN,0), rev=dev*price(l.d)*Q.price*(1-0.03*sk.length);
+    const Q=QUAL[N.q], dev=U-N.deal.o, total=U*unitCost(l.d)*Q.cost, rev=dev*estSale(l.d,N.q), prof=dealProfit(l,N.deal.o,N.deal.c,N.q);
+    const short=total+N.deal.c-S.cash;
     body=`<div class="note">${LANG==='en'?`Deal shaken on. ${esc(l.name)} gets <b>${N.deal.o}</b> ${N.deal.o===1?'unit':'units'}, you get <b>${dev}</b>${N.deal.c?`, plus ${fmt(N.deal.c)} cash today`:''}. The build takes ${buildMonths(fl)} mo at ${fmt(total/buildMonths(fl))} a month.`:`El sıkışıldı. ${esc(l.name)} <b>${N.deal.o}</b> daire alıyor, sen <b>${dev}</b> daire${N.deal.c?`, artı bugün ${fmt(N.deal.c)} nakit`:''}. İnşaat ${buildMonths(fl)} ay sürer, ayda ${fmt(total/buildMonths(fl))}.`}</div>
       <div class="qsel" role="radiogroup" aria-label="${T('İnşaat kalitesi','Build quality')}"><span class="qsel-l">${T('İnşaat kalitesi','Build quality')}</span>
-        ${Object.entries(QUAL).map(([k,x])=>`<button class="qopt${N.q===k?' on':''}" role="radio" aria-checked="${N.q===k}" data-a="qual" data-c="${k}"><b>${x.name}</b><span>${x.fx}</span></button>`).join('')}</div>
+        ${Object.entries(QUAL).map(([k,x])=>{ const pk=dealProfit(l,N.deal.o,N.deal.c,k); return `<button class="qopt${N.q===k?' on':''}" role="radio" aria-checked="${N.q===k}" data-a="qual" data-c="${k}"><b>${x.name}</b><span>${x.fx}</span><em class="${pk>=0?'pos':'neg'}">${T('Beklenen kâr','Expected profit')} ${fmt(pk)}</em></button>`; }).join('')}</div>
       <div class="proj"><div><span>${T('Senin satışın','Your sales')}</span><b class="num">${fmt(rev)}</b></div><div><span>${T('İnşaat maliyeti','Build cost')}</span><b class="num">${fmt(total)}</b></div>
-      <div class="tot"><span>${T('Beklenen kâr','Expected profit')}</span><b class="num ${rev-total+skGain-N.deal.c>=0?'pos':'neg'}">${fmt(rev-total+skGain-N.deal.c)}</b></div></div>
-      <div class="row"><button class="btn" data-a="sign">${T('İmzala ve temeli at','Sign & break ground')}</button><span class="row-note">${T('İmzadan sonra inşaat bu planla ilerler.','Once signed, the build follows this plan.')}</span></div>`;
+      <div class="tot"><span>${T('Beklenen kâr','Expected profit')}</span><b class="num ${prof>=0?'pos':'neg'}">${fmt(prof)}</b></div></div>
+      ${prof<0?`<div class="note warn">${Object.keys(QUAL).some(k=>dealProfit(l,N.deal.o,N.deal.c,k)>=0)?T('Bu kaliteyle zarar edersin. Kârlı bir kalite seç ya da anlaşmayı bozup pazarlığa dön.','You lose money at this quality. Pick one that pays, or call the deal off and go back to haggling.'):T('Bu anlaşma hiçbir kalitede kâr bırakmıyor. Anlaşmayı bozup pazarlığa dönebilirsin.','This deal makes no money at any quality. You can call it off and go back to haggling.')}</div>`
+        :short>0.5?`<div class="note">${T(`Kasan inşaatın tamamını karşılamıyor (${fmt(short)} eksik). Farkı inşaat sürerken maketten satışla kapatırsın; maketten satış piyasa fiyatının ${pc(presellK())} kadarını getirir.`,`Your cash doesn't cover the whole build (${fmt(short)} short). You'll bridge it with off-plan sales during the build, which bring in ${pc(presellK())} of the market price.`)}</div>`:''}
+      <div class="row"><button class="btn" data-a="sign">${N.sure2?T('Zararına imzala: emin misin?','Sign at a loss: are you sure?'):T('İmzala ve temeli at','Sign & break ground')}</button><button class="link" data-a="undeal">${T('Anlaşmayı boz (1 sabır)','Call the deal off (1 patience)')}</button></div>`;
   } else {
+    const last=l.last, pct=n=>(clamp(n/U,0,1)*100).toFixed(2);
+    const cp=cashPts(l,1)*U/100;   /* flats one unit of cash is worth to this owner */
     body=`
       <div class="ctl">
         <label for="sO" class="split"><span>${T('Arsa sahibine','To owner')} <b class="num" id="oOwn"></b> ${T('daire','units')}</span><span>${T('Firmaya','To firm')} <b class="num" id="oMe"></b> ${T('daire','units')}</span></label>
         <input type="range" id="sO" min="0" max="${U}" step="1" value="${N.o}" aria-label="${T('Arsa sahibine verilecek daire','Units for the owner')}">
+        <div class="zone" aria-hidden="true"><i class="ok" style="width:${pct(be)}%"></i><i class="t ask" style="left:${pct(askUnits)}%"></i>${last?`<i class="t last" style="left:${pct(last.o)}%"></i>`:''}</div>
+        <p class="zleg"><span><i></i>${T('Kârlı: en çok','Profitable: up to')} <b>${be}</b></span><span><i class="ask"></i>${T('Talep','Ask')} <b>${askUnits}</b></span>${last?`<span><i class="last"></i>${T('Son teklifin','Your last offer')} <b>${last.o}</b></span>`:''}</p>
         <div class="stepper">${U>=40?`<button data-a="ostep" data-c="${-Math.max(2,Math.round(U*.05))}" aria-label="${T('Yüzde 5 azalt','Down 5 percent')}">${T('−%5','−5%')}</button><button data-a="ostep" data-c="${-Math.max(1,Math.round(U*.01))}" aria-label="${T('Yüzde 1 azalt','Down 1 percent')}">${T('−%1','−1%')}</button>`:''}<button data-a="ostep" data-c="-1" aria-label="${T('Bir daire azalt','One unit less')}">−1</button>
           <input type="number" id="oN" inputmode="numeric" min="0" max="${U}" step="1" value="${N.o}" aria-label="${T('Arsa sahibine daire sayısı','Number of units for the owner')}">
           <button data-a="ostep" data-c="1" aria-label="${T('Bir daire artır','One unit more')}">+1</button>${U>=40?`<button data-a="ostep" data-c="${Math.max(1,Math.round(U*.01))}" aria-label="${T('Yüzde 1 artır','Up 1 percent')}">${T('+%1','+1%')}</button><button data-a="ostep" data-c="${Math.max(2,Math.round(U*.05))}" aria-label="${T('Yüzde 5 artır','Up 5 percent')}">${T('+%5','+5%')}</button>`:''}
           <button class="ask" data-a="ostep" data-c="ask">${T('Talebe eşitle','Match ask')}</button></div>
       </div>
       ${mc>=0.5?`<div class="ctl"><label for="sC"><span>${T('Nakit ek ödeme, imzada ödenir','Cash sweetener, paid at signing')}</span><b class="num" id="cLbl"></b></label>
-        <input type="range" id="sC" min="0" max="${mc}" step="0.5" value="${N.c}"></div>`:''}
+        <input type="range" id="sC" min="0" max="${mc}" step="0.5" value="${N.c}" data-cp="${up('scout')>=1?cp:''}">
+        <p class="cashv" id="cVal"></p></div>`:''}
       <div class="proj" id="projBox"></div>
+      <div class="note warn" id="lossN" hidden></div>
       ${full?`<div class="note warn">${T('Şantiyende inşaat sürüyor. Bina bitince yeni anlaşma yapabilirsin.','Your site is busy. You can make a new deal once the building is done.')}</div>`:''}
       <div class="row">
         <button class="btn" data-a="offer" ${full?'disabled':''}>${T('Teklif ver','Make offer')}</button>
-        <button class="btn ghost" data-a="agree" ${full?'disabled':''}>${T(`${askUnits} daireye razı ol`,`Accept ${askUnits} ${askUnits===1?'unit':'units'}`)}</button>
+        <button class="btn ghost${askUnits>be?' risk':''}" data-a="agree" ${full?'disabled':''}>${N.sure?T(`Zararına ${askUnits} daire: emin misin?`,`${askUnits} ${units(askUnits)} at a loss: sure?`):T(`${askUnits} daireye razı ol`,`Accept ${askUnits} ${units(askUnits)}`)}</button>
       </div>`;
   }
   const dropF=Math.ceil((l.ask0??l.ask)/100*U-1e-9)-askF(l);
@@ -2030,7 +2070,8 @@ function renderNeg(){
         <div class="askbox${N.deal?' agreed':''}">
           <div><span>${N.deal?T('Anlaşılan','Agreed'):T('Ev sahibinin talebi',"Owner's ask")}</span><b class="num">${N.deal?N.deal.o:askF(l)} <small>${T('daire','units')}</small></b><em>${N.deal?T(`firmaya ${U-N.deal.o} daire kalıyor`,`${U-N.deal.o} left for the firm`):T(`${U} dairenin ${askF(l)} tanesi · firmaya ${U-askF(l)} kalır${dropF>0?` · ${dropF} daire indi`:''}`,`${askF(l)} of ${U} units · ${U-askF(l)} left for you${dropF>0?` · down ${dropF}`:''}`)}</em></div>
           ${!N.deal&&l.itiB?`<p class="itib ${l.itiB>0?'up':'down'}">${l.itiB>0?T(`İtibarın sayesinde yaklaşık ${Math.max(1,flatsFromPts(l.itiB,U))} daire daha az istiyor`,`Your reputation knocks ~${Math.max(1,flatsFromPts(l.itiB,U))} ${Math.max(1,flatsFromPts(l.itiB,U))===1?'unit':'units'} off the ask`):T(`Düşük itibarın yüzünden yaklaşık ${Math.max(1,flatsFromPts(l.itiB,U))} daire fazla istiyor`,`Low reputation adds ~${Math.max(1,flatsFromPts(l.itiB,U))} ${Math.max(1,flatsFromPts(l.itiB,U))===1?'unit':'units'} to the ask`)}</p>`:''}
-          ${N.deal?'':`<div class="mood" title="${T('Sabrı biterse masadan kalkar','Runs out of patience and walks away')}"><span>${T('Sabır','Patience')}</span>${Array.from({length:l.patMax||TY.pat},(_,i)=>`<i class="${i<l.pat?'on':''}"></i>`).join('')}</div>`}
+          ${N.deal?'':`<div class="mood${l.pat<=1?' last':''}" title="${T('Sabrı biterse masadan kalkar. Çok düşük teklif 2 sabır götürür.','Runs out of patience and walks away. A lowball offer costs 2 patience.')}"><span>${l.pat<=1?T('Son sabır','Last patience'):T('Sabır','Patience')}</span>${Array.from({length:l.patMax||TY.pat},(_,i)=>`<i class="${i<l.pat?'on':''}"></i>`).join('')}</div>`}
+          ${!N.deal&&N.fb?`<p class="fb ${N.fb.c}" aria-live="polite">${N.fb.t}</p>`:''}
           ${!N.deal&&up('scout')>=2?`<p class="scout">${T(`Gözcü: en az ${Math.max(1,resF(l)-1)}–${resF(l)+1} daireye razı olur`,`Scout: will settle for ${Math.max(1,resF(l)-1)}–${resF(l)+1} units at least`)}</p>`:''}
         </div>
         <div class="preview"><div id="negB"></div><div class="tally" id="negTally" aria-live="polite"></div></div>
@@ -2058,58 +2099,94 @@ function updatePreview(){
   }
   $('#negTally').innerHTML=`<span><i style="background:var(--rust)"></i><b>${o}</b>${T('ev sahibine','to owner')}</span><span><i style="background:var(--hiviz)"></i><b>${U-o}</b>${T('sana','to you')}</span>`;
   if(N.deal) return;
-  const dev=U-N.o, total=U*unitCost(l.d), rev=dev*price(l.d), prof=rev-total-N.c;
+  const dev=U-N.o, total=U*unitCost(l.d), rev=dev*estSale(l.d,'std'), prof=rev-total-N.c;
   $('#oOwn').textContent=fmtM2(N.o); $('#oMe').textContent=fmtM2(dev);
   const on=$('#oN'); if(on&&document.activeElement!==on) on.value=N.o; const so=$('#sO'); if(so&&+so.value!==N.o) so.value=N.o;
   if($('#cLbl')) $('#cLbl').textContent=N.c?fmt(N.c):T('yok','none');
+  const cv=$('#cVal'); if(cv){ const cp=$('#sC').dataset.cp, f=cp===''?null:Math.round(N.c*+cp*10)/10;
+    cv.textContent=f==null?T('Nakdin kaç daire ettiği ev sahibinin mizacına bağlı (mahalle gözcüsü gösterir).','How many units cash is worth depends on the owner\'s temper (a scout reveals it).')
+      :N.c?T(`Bu nakit ev sahibi için yaklaşık ${nr(f)} daire eder; sana maliyeti ${nr(N.c/estSale(l.d,'std'))} daire.`,`To this owner the cash is worth about ${nr(f)} units; it costs you ${nr(N.c/estSale(l.d,'std'))}.`)
+      :T('Nakit eklersen ev sahibi daha az daireye razı olur.','Add cash and the owner settles for fewer units.'); }
   $('#projBox').innerHTML=`<div><span>${T('Senin satışın','Your sales')}</span><b class="num">${fmt(rev)}</b></div><div><span>${T('İnşaat maliyeti','Build cost')}</span><b class="num">${fmt(total)}</b></div>
     <div><span>${T('Ek ödeme','Sweetener')}</span><b class="num">${N.c?fmt(N.c):'—'}</b></div><div><span>${T('Süre','Duration')}</span><b class="num">${buildMonths(fl)} ${T('ay','mo')}</b></div>
     <div class="tot"><span>${T('Beklenen kâr','Expected profit')}</span><b class="num ${prof>=0?'pos':'neg'}">${fmt(prof)}</b></div>`;
+  const ln=$('#lossN'); if(ln){ ln.hidden=prof>=0; if(prof<0) ln.textContent=T(`Bu teklif kabul edilirse zarar edersin. Standart kalitede kâr eşiği: ev sahibine en çok ${beF(l)} daire.`,`You lose money if this offer is accepted. Break-even at standard quality: ${beF(l)} units to the owner at most.`); }
+}
+function ownerLeaves(l){
+  l.chat.push({w:'them',t:line(l,'leave')});
+  addLog(T(`${l.name} masadan kalktı.`,`${l.name} walked away from the table.`),'badt');
+  N.gone=true;
+  const chat=l.chat.slice();
+  S.listings=S.listings.filter(x=>x.id!==l.id); refill();
+  save();
+  $('#neg').innerHTML=`<div class="sheet"><header><div><h3 id="negTitle">${esc(l.name)}</h3></div><button class="x" data-a="close" aria-label="${T('Kapat','Close')}">×</button></header>
+    <div class="chat">${chat.map(c=>`<div class="say ${c.w}"><small>${c.w==='you'?T('Sen','You'):esc(l.name)}</small>${esc(c.t)}</div>`).join('')}</div>
+    <div class="note warn">${T('Ev sahibi gitti. Bu parsel artık satışta değil.',"The owner's gone. This plot is off the market.")}</div>
+    <div class="row"><button class="btn ghost" data-a="close">${T('Şantiyeye dön','Back to site')}</button></div></div>`;
+  const ch=$('#neg .chat'); if(ch) ch.scrollTop=ch.scrollHeight;
+  render();
 }
 function makeOffer(){
-  const l=negListing(); if(!l) return;
+  const l=negListing(); if(!l||N.deal) return;
   const U=unitsOf(l), TY=TYPES[l.type];
-  const share=N.o/U*100, cashPts=N.c/(U*price(l.d))*100*TY.cash*(1+E('lawyer')), val=share+cashPts, res=effRes(l);
+  /* Offering the ask or more is simply saying yes: nobody pays above the ask, and no cash is needed. */
+  if(N.o>=askF(l)){ agreeAsk(); return; }
+  N.sure=false;
+  const share=N.o/U*100, val=share+cashPts(l,N.c), res=effRes(l);
+  l.last={o:N.o,c:N.c};
   l.chat.push({w:'you',t:T(`Size ${N.o} daire, bize ${U-N.o} daire`,`${N.o} for you, ${U-N.o} for us`)+(N.c>0?T(`, üstüne ${fmt(N.c)} nakit.`,`, plus ${fmt(N.c)} cash.`):'.')});
-  if(val>=res){ l.chat.push({w:'them',t:line(l,'accept')}); N.deal={o:N.o,c:N.c}; }
+  if(val>=res){ l.chat.push({w:'them',t:line(l,'accept')}); N.deal=l.deal={o:N.o,c:N.c}; N.fb=null; }
   else{
     const gap=res-val; l.talked=true;
-    if(gap>14){ l.pat-=2; l.res=Math.min(l.ask,l.res+1); l.chat.push({w:'them',t:line(l,'insult')}); }
+    if(gap>14){ l.pat-=2; l.res=Math.min(l.ask,l.res+1); l.chat.push({w:'them',t:line(l,'insult')});
+      N.fb={c:'bad',t:T('Teklifi çok düşük buldu: 2 sabır gitti ve tutumu sertleşti.','Far too low for them: 2 patience gone, and their stance hardened.')}; }
     else{
       l.pat-=1;
-      const k=TY.k*(gap<4?2:1), oldF=askF(l), floorF=Math.max(1,resF(l));
+      const near=gap<4, k=TY.k*(near?2:1), oldF=askF(l), floorF=Math.max(1,resF(l));
       const want=Math.ceil((l.ask-(l.ask-res)*k)/100*U-1e-9);
       l.ask=Math.max(floorF,Math.min(oldF-1,want))/U*100;
-      if(l.pat>0) l.chat.push({w:'them',t:line(l,'counter')});
+      const newF=askF(l);
+      if(l.pat>0) l.chat.push({w:'them',t:line(l,near?'near':'counter')});
+      N.fb=newF<oldF?{c:near?'good':'',t:near?T(`Anlaşmaya yakınsın: talebini ${oldF} daireden ${newF} daireye indirdi.`,`You're close: the ask came down from ${oldF} to ${newF}.`):T(`Talebini ${oldF} daireden ${newF} daireye indirdi.`,`The ask came down from ${oldF} to ${newF}.`)}
+        :{c:'',t:T('Talebinden inmedi; bundan aşağısı zor görünüyor.','The ask didn\'t move; it looks like they won\'t go lower.')};
     }
-    if(l.pat<=0){
-      l.chat.push({w:'them',t:line(l,'leave')});
-      addLog(T(`${l.name} masadan kalktı.`,`${l.name} walked away from the table.`),'badt');
-      N.gone=true;
-      const chat=l.chat.slice();
-      S.listings=S.listings.filter(x=>x.id!==l.id); refill();
-      save();
-      $('#neg').innerHTML=`<div class="sheet"><header><div><h3 id="negTitle">${esc(l.name)}</h3></div><button class="x" data-a="close" aria-label="${T('Kapat','Close')}">×</button></header>
-        <div class="chat">${chat.map(c=>`<div class="say ${c.w}">${esc(c.t)}</div>`).join('')}</div>
-        <div class="note warn">${T('Ev sahibi gitti. Bu parsel artık satışta değil.',"The owner's gone. This plot is off the market.")}</div>
-        <div class="row"><button class="btn ghost" data-a="close">${T('Şantiyeye dön','Back to site')}</button></div></div>`;
-      render(); return;
-    }
+    if(l.pat<=0){ ownerLeaves(l); return; }
   }
   save(); renderNeg();
 }
 function agreeAsk(){
-  const l=negListing(); if(!l) return;
-  const U=unitsOf(l), o=Math.min(U,Math.ceil(l.ask/100*U));
+  const l=negListing(); if(!l||N.deal) return;
+  const U=unitsOf(l), o=askF(l);
+  /* Saying yes to a losing ask takes a second tap. */
+  if(o>beF(l)&&!N.sure){ N.sure=true; renderNeg(); return; }
+  N.sure=false;
   l.chat.push({w:'you',t:T(`Tamam, ${o} daire sizin.`,`Fine, ${o} ${o===1?'unit is':'units are'} yours.`)});
   l.chat.push({w:'them',t:line(l,'accept')});
-  N.deal={o,c:0}; save(); renderNeg();
+  N.deal=l.deal={o,c:0}; N.fb=null; save(); renderNeg();
+}
+/* Back out of a handshake before signing: the owner takes it badly (1 patience) but the talks go on. */
+function undoDeal(){
+  const l=negListing(); if(!l||!N.deal) return;
+  l.deal=null; N.deal=null; N.sure=N.sure2=false; l.talked=true; l.pat-=1;
+  l.chat.push({w:'you',t:T('Kusura bakmayın, hesap tutmadı. Bir daha konuşalım.','Sorry, the numbers don\'t add up. Let\'s talk again.')});
+  if(l.pat<=0){ ownerLeaves(l); return; }
+  N.fb={c:'bad',t:T('Sözünden döndün: 1 sabır gitti.','You went back on your word: 1 patience gone.')};
+  save(); renderNeg();
+}
+/* Pass on the plot without talking; the next one comes up as usual. */
+function skipPlot(id){
+  const l=S.listings.find(x=>x.id===id); if(!l||busy()) return;
+  S.listings=S.listings.filter(x=>x.id!==id); refill();
+  addLog(T(`${l.name} ile görüşmedin; sıradaki parsele geçildi.`,`You passed on ${l.name}'s plot; on to the next one.`),'good');
+  save(); render();
 }
 function sign(){
   const l=negListing(); if(!l||!N.deal) return;
   if(activeBuilds()>=maxSites()){toast(T('İnşaat sürerken yeni sözleşme imzalanamaz',"Can't sign a new deal mid-build"));return}
   if(S.cash<N.deal.c){toast(T('Ek ödeme için nakit yetmiyor','Not enough cash for the sweetener'));return}
   const U=unitsOf(l), q=N.q||'std';
+  /* Signing at a loss takes a second tap. */
+  if(!N.sure2&&dealProfit(l,N.deal.o,N.deal.c,q)<0){ N.sure2=true; renderNeg(); return; }
   signDeal(l,N.deal.o,N.deal.c,q);
   addLog(T(`${l.name} ile imzalandı. Yeni binanın adı: ${S.projects[S.projects.length-1].apt}. ${N.deal.o} daire ev sahibine, ${U-N.deal.o} daire sana; ${LOW(QUAL[q].name)} kalitede hafriyat başlıyor.`,`Signed with ${l.name}. New building: ${S.projects[S.projects.length-1].apt}. ${N.deal.o} to the owner, ${U-N.deal.o} to you; ${LOW(QUAL[q].name)}-grade excavation begins.`),'good');
   save(); closeNeg();
@@ -2146,9 +2223,9 @@ function autoDeal(){
   const l=S.listings[0]; if(!l||busy()||!autoOn()) return;
   if(N&&N.lid===l.id) return;   /* you're at the table: the manager waits */
   l.auto=(l.auto||0)+1; if(l.auto<AUTO_SECS) return;
-  const o=autoPlan(l);
+  const o=l.deal&&S.cash>=l.deal.c?l.deal.o:autoPlan(l);
   if(o==null){ S.listings=S.listings.filter(x=>x.id!==l.id); return; }
-  const p=signDeal(l,o,0,'std');
+  const p=signDeal(l,o,l.deal&&o===l.deal.o&&S.cash>=l.deal.c?l.deal.c:0,'std');
   addLog(T(`Emlak müdürü ${l.name} ile imzaladı: ${o} daire ev sahibine, ${p.dev} daire sana. Yeni bina: ${p.apt}.`,`Your estate manager signed with ${l.name}: ${o} to the owner, ${p.dev} to you. New building: ${p.apt}.`),'good');
 }
 function presellN(p,n){
@@ -2165,7 +2242,7 @@ function autoHTML(l){
   if(!autoOn()) return `<div class="auto off"><span>${T('Emlak müdürü kapalı: anlaşmaları yalnızca sen imzalarsın.','Estate manager is off: only you sign deals.')}</span><button data-a="auto" data-c="on">${T('Aç','Turn on')}</button></div>`;
   let t;
   if(!l) t=T('Emlak müdürü açık: sen pazarlık etmezsen sıradaki parseli o imzalar.','Estate manager is on: plots you don\'t haggle over get signed for you.');
-  else{ const o=autoPlan(l), left=autoLeft(l);
+  else{ const o=l.deal&&S.cash>=l.deal.c?l.deal.o:autoPlan(l), left=autoLeft(l);
     t=o==null?T(`Emlak müdürü bu parseli kârlı bulmuyor, ${left} sn sonra pas geçecek.`,`Your estate manager sees no profit in this plot and will pass in ${left}s.`)
       :T(`Pazarlık etmezsen emlak müdürü ${left} sn sonra ${o} daireye imzalar.`,`If you don't haggle, your estate manager signs for ${o} ${o===1?'unit':'units'} in ${left}s.`); }
   return `<div class="auto"><span>${t}</span><button data-a="auto" data-c="off">${T('Kapat','Turn off')}</button></div>`;
@@ -2512,12 +2589,14 @@ document.addEventListener('click',e=>{
     case 'close': closeNeg(); break;
     case 'offer': makeOffer(); break;
     case 'agree': agreeAsk(); break;
+    case 'undeal': undoDeal(); break;
+    case 'skip': skipPlot(+id); break;
     case 'sign': sign(); break;
     case 'buy':{ const u=UPG.find(x=>x.id===id), lvl=up(id), c=upCost(u,lvl);
       if(S.cash>=c){S.cash-=c;S.up[id]=lvl+1;emit('upgrade');addLog(T(`Alındı: ${u.name} (seviye ${S.up[id]}).`,`Bought: ${u.name} (level ${S.up[id]}).`),'good');if(false)refill();save();render();} break; }
     case 'rush': if(!e.detail) rush(+id,e); break; /* pointer taps are handled by the pointer handler below */
     case 'dec': decide(+id,b.dataset.c,e); break;
-    case 'qual': if(N){ N.q=b.dataset.c; renderNeg(); } break;
+    case 'qual': if(N){ N.q=b.dataset.c; N.sure2=false; renderNeg(); } break;
     case 'presell':{ const p=S.projects.find(x=>x.id===+id); if(p&&p.sold<p.dev){const amt=presellN(p,1);
       if(p.stalled){p.stalled=false} addLog(T(`${aptOf(p)} şantiyesinden maketten bir daire ${fmt(amt)} karşılığında satıldı.`,`Off-plan sale: 1 unit at ${aptOf(p)} sold for ${fmt(amt)}.`));save();render();} break; }
     case 'dump':{ const p=S.projects.find(x=>x.id===+id); if(p&&p.status==='sell'){const inv=toSell(p)-p.sold,amt=inv*priceOf(p)*0.85;earn(amt);p.income+=amt;p.sold+=inv;emit('sale',{n:inv,amt});
