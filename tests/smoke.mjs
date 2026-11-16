@@ -72,6 +72,32 @@ for (const lang of ['tr', 'en']) {
   if (!ok) { console.error('[pgs] Play Games bridge check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
   await ctx.close();
 }
+// Estate manager and time away: an untouched plot is signed after AUTO_SECS without a losing deal, switching the
+// manager off stops that, and an hour away with the manager on hands over buildings and reports them.
+{
+  const ctx = await browser.newContext({ viewport: { width: 400, height: 860 }, locale: 'en-US' });
+  await ctx.addInitScript(() => localStorage.setItem('kk-tycoon-lang-v1', 'en'));
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(url);
+  await page.waitForTimeout(500);
+  const r = await page.evaluate(() => {
+    clearInterval(window.__kkTimer);
+    const row = !!document.querySelector('#listings .auto [data-a="auto"]');
+    S.auto = false; for (let i = 0; i < AUTO_SECS + 5; i++) tick();
+    const offIdle = activeBuilds() === 0;
+    S.auto = true; let guard = 0; while (!activeBuilds() && guard++ < 600) tick();
+    const p = S.projects.find(x => x.status === 'build');
+    const signed = !!p, sound = !!p && p.dev * priceOf(p) >= p.total;
+    S.seen = Date.now() - 3600 * 1000; accrueAway();
+    return { row, offIdle, signed, sound, done: S.away ? S.away.done : -1, amt: S.away ? S.away.amt : 0, banner: !!document.querySelector('#away .away') || (render(), !!document.querySelector('#away .away')) };
+  });
+  const ok = r.row && r.offIdle && r.signed && r.sound && r.done >= 1 && r.amt > 0 && r.banner && !errors.length;
+  console.log(`[auto] toggle ${r.row ? 'shown' : 'MISSING'}, off=${r.offIdle ? 'idle' : 'SIGNED'}, on=${r.signed ? 'signed' : 'NOT SIGNED'}, profitable=${r.sound}, 1h away: ${r.done} handed over, banner ${r.banner ? 'shown' : 'MISSING'}`);
+  if (!ok) { console.error('[auto] estate manager / time away check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
+  await ctx.close();
+}
 // AdMob bridge: with a fake window.AndroidAds a watched ad resolves true, an unavailable ad resolves false with
 // reason 'noad', and the Settings privacy row (GDPR) shows and reaches the bridge.
 {
