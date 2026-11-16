@@ -73,7 +73,8 @@ for (const lang of ['tr', 'en']) {
   await ctx.close();
 }
 // Estate manager and time away: an untouched plot is signed after AUTO_SECS without a losing deal, switching the
-// manager off stops that, and an hour away with the manager on hands over buildings and reports them.
+// manager off stops that, and time away is capped by the Night watchman
+// upgrade (1 hour at first), and within that cap the firm hands over buildings and reports them.
 {
   const ctx = await browser.newContext({ viewport: { width: 400, height: 860 }, locale: 'en-US' });
   await ctx.addInitScript(() => localStorage.setItem('kk-tycoon-lang-v1', 'en'));
@@ -90,11 +91,12 @@ for (const lang of ['tr', 'en']) {
     S.auto = true; let guard = 0; while (!activeBuilds() && guard++ < 600) tick();
     const p = S.projects.find(x => x.status === 'build');
     const signed = !!p, sound = !!p && p.dev * priceOf(p) >= p.total;
-    S.seen = Date.now() - 3600 * 1000; accrueAway();
-    return { row, offIdle, signed, sound, done: S.away ? S.away.done : -1, amt: S.away ? S.away.amt : 0, banner: !!document.querySelector('#away .away') || (render(), !!document.querySelector('#away .away')) };
+    const cap0 = offCap(); S.up.watch = 2; const cap2 = offCap();
+    S.seen = Date.now() - 5 * 3600 * 1000; accrueAway();
+    return { caps: cap0 === 3600 && cap2 === 3 * 3600 && S.away && S.away.secs === 3 * 3600 && S.away.capH === 3, row, offIdle, signed, sound, done: S.away ? S.away.done : -1, amt: S.away ? S.away.amt : 0, banner: !!document.querySelector('#away .away') || (render(), !!document.querySelector('#away .away')) };
   });
-  const ok = r.row && r.offIdle && r.signed && r.sound && r.done >= 1 && r.amt > 0 && r.banner && !errors.length;
-  console.log(`[auto] toggle ${r.row ? 'shown' : 'MISSING'}, off=${r.offIdle ? 'idle' : 'SIGNED'}, on=${r.signed ? 'signed' : 'NOT SIGNED'}, profitable=${r.sound}, 1h away: ${r.done} handed over, banner ${r.banner ? 'shown' : 'MISSING'}`);
+  const ok = r.caps && r.row && r.offIdle && r.signed && r.sound && r.done >= 1 && r.amt > 0 && r.banner && !errors.length;
+  console.log(`[auto] toggle ${r.row ? 'shown' : 'MISSING'}, off=${r.offIdle ? 'idle' : 'SIGNED'}, on=${r.signed ? 'signed' : 'NOT SIGNED'}, profitable=${r.sound}, away cap 1h -> 3h at watchman lv 2: ${r.caps ? 'ok' : 'WRONG'}, 5h away: ${r.done} handed over, banner ${r.banner ? 'shown' : 'MISSING'}`);
   if (!ok) { console.error('[auto] estate manager / time away check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
   await ctx.close();
 }

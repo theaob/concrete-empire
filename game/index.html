@@ -767,6 +767,8 @@ const FLAVOR=T(['İncir ağaçlı, dökülmek üzere 70\'lerden kalma ev','Otopa
 const dim=(L,step,cap)=>cap*(1-Math.pow(1-step/cap,L));
 const pc=v=>LANG==='en'?(Math.round(v*1000)/10)+'%':'%'+DEC((Math.round(v*1000)/10).toString());
 const nr=v=>DEC((Math.round(v*10)/10).toString());
+/* Hours the firm keeps working while the game is closed, by Night watchman level. */
+const OFF_H=[1,2,3,4,6,8,10,12,16,24];
 const UPG=[
   {id:'talk',cat:'neg',name:T('Tatlı dilli emlakçı','Smooth-talking agent'),c0:3,g:2.8,what:T('Ev sahipleri daha düşük orana razı olur.','Owners settle for a lower share.'),eff:L=>dim(L,1,6),show:v=>T(`−${nr(v)} puan`,`−${nr(v)} pts`)},
   {id:'scout',cat:'neg',name:T('Mahalle gözcüsü','Neighbourhood scout'),c0:2,g:2.9,what:T('1. seviye ev sahibinin mizacını, 2. seviye alt sınırını gösterir; sonraki her seviye ev sahiplerine +1 sabır kazandırır.','Lv. 1 reveals the owner\'s temper, Lv. 2 their bottom line; each level after gives owners +1 patience.'),eff:L=>L,show:v=>v<1?T('yok','none'):v<2?T('mizaç','temper'):v<3?T('mizaç, alt sınır','temper, bottom line'):T(`mizaç, alt sınır, +${v-2} sabır`,`temper, bottom line, +${v-2} patience`)},
@@ -780,13 +782,15 @@ const UPG=[
   {id:'design',cat:'sale',name:T('İç mimarlık ofisi','Interior design studio'),c0:5,g:3.0,what:T('Tüm dairelerin satış fiyatı artar.','All units sell for more.'),eff:L=>dim(L,.02,.25),show:v=>T(`+${pc(v)} fiyat`,`+${pc(v)} price`)},
   {id:'presale',cat:'sale',name:T('Maket ve ön satış ekibi','Model & pre-sales team'),c0:2,g:2.9,what:T('Maketten satış fiyatı piyasa fiyatına yaklaşır (başlangıç %70).','Off-plan sale price gets closer to market price (starts at 70%).'),eff:L=>dim(L,.05,.25),show:v=>T(`maketten ${pc(.7+v)}`,`off-plan ${pc(.7+v)}`)},
   {id:'rentm',cat:'sale',name:T('Kira yönetim şirketi','Letting agency'),c0:4,g:2.9,what:T('Kira gelirleri artar.','Rent income goes up.'),eff:L=>dim(L,.06,.6),show:v=>T(`+${pc(v)} kira`,`+${pc(v)} rent`)},
-  {id:'pr',cat:'fin',name:T('Halkla ilişkiler','Public relations'),c0:5,g:3.0,what:T('Her anahtar tesliminde ek itibar.','Extra Reputation on every handover.'),eff:L=>L,show:v=>T(`teslimde +${v} itibar`,`+${v} Reputation on handover`)}
+  {id:'pr',cat:'fin',name:T('Halkla ilişkiler','Public relations'),c0:5,g:3.0,what:T('Her anahtar tesliminde ek itibar.','Extra Reputation on every handover.'),eff:L=>L,show:v=>T(`teslimde +${v} itibar`,`+${v} Reputation on handover`)},
+  {id:'watch',cat:'fin',max:OFF_H.length-1,name:T('Gece bekçisi','Night watchman'),c0:4,g:2.9,what:T('Oyun kapalıyken firma daha uzun süre çalışır ve kazanır.','The firm keeps working and earning for longer while the game is closed.'),eff:L=>OFF_H[Math.min(L,OFF_H.length-1)],show:v=>T(`kapalıyken ${v} saat`,`${v} ${v===1?'hour':'hours'} away`)}
 ];
 const upCost=(u,L)=>Math.round(u.c0*Math.pow(u.g,L)*2)/2;
 const E=id=>{ const u=UPG.find(x=>x.id===id); return u.eff(up(id)); };
 const scoutSlots=L=>L>=2?1+Math.floor((L-2)/2):0;
 const UPG_CATS=[['neg',T('Pazarlık','Haggling')],['build',T('İnşaat','Construction')],['sale',T('Satış ve kira','Sales & rent')],['fin',T('Şirket ve finans','Company & finance')]];
 const up=id=>S.up[id]||0;
+const upMax=u=>u.max!=null&&up(u.id)>=u.max;
 const presellK=()=>0.7+E('presale');
 const RANKS=[[0,T('Mahalle müteahhidi','Neighbourhood developer')],[50,T('İlçe müteahhidi','District developer')],[150,T('Şehir müteahhidi','City developer')],[500,T('Silüet kralı','Skyline king')],[1500,T('Holding baronu','Holding baron')]];
 /* Endless: past the last title, every ×3 of net worth adds a new tier. */
@@ -1922,8 +1926,8 @@ function render(){
   if(sp&&sp.kind!=='tender') PICQ=sp;
   out['#boosts']=boostsHTML();
   out['#away']=S.away?`<div class="away"><div><b>${T('Sen yokken','While you were away')}</b><span>${S.away.done!=null
-      ?T(`${fmtDur(S.away.secs)} geçti.${S.away.done?` Şantiye yarı hızda çalıştı, ${NUM(S.away.done)} bina teslim edildi.`:''} Satış ve kira geliri:`,`${fmtDur(S.away.secs)} went by.${S.away.done?` The site ran at half speed and handed over ${NUM(S.away.done)} ${S.away.done===1?'building':'buildings'}.`:''} Sales and rent income:`)
-      :T(`${fmtDur(S.away.secs)} boyunca kiracılar ödedi:`,`Tenants paid over ${fmtDur(S.away.secs)}:`)} <strong class="num">${fmt(S.away.amt)}</strong>${S.away.capped?T(' (en fazla 7 günlük kira birikir)',' (rent piles up for 7 days max)'):''}${S.away.siteCap?T(` (şantiye en fazla ${OFF_CAP/3600} saat çalışır)`,` (the site works for ${OFF_CAP/3600} hours max)`):''}</span></div><button class="btn" data-a="awayok">${T('Kasaya aldım','Bank it')}</button></div>`:'';
+      ?T(`Firma ${fmtDur(S.away.secs)} çalıştı.${S.away.done?` Şantiye yarı hızda ilerledi, ${NUM(S.away.done)} bina teslim edildi.`:''} Satış ve kira geliri:`,`The firm worked for ${fmtDur(S.away.secs)}.${S.away.done?` The site ran at half speed and handed over ${NUM(S.away.done)} ${S.away.done===1?'building':'buildings'}.`:''} Sales and rent income:`)
+      :T(`${fmtDur(S.away.secs)} boyunca kiracılar ödedi:`,`Tenants paid over ${fmtDur(S.away.secs)}:`)} <strong class="num">${fmt(S.away.amt)}</strong>${S.away.capH?T(` (kapalıyken en fazla ${S.away.capH} saat kazanılır; Gece bekçisi geliştirmesi uzatır)`,` (at most ${S.away.capH} ${S.away.capH===1?'hour':'hours'} earned while away; the Night watchman upgrade extends it)`):S.away.capped?T(' (en fazla 7 günlük kira birikir)',' (rent piles up for 7 days max)'):''}</span></div><button class="btn" data-a="awayok">${T('Kasaya aldım','Bank it')}</button></div>`:'';
   out['#tenders']=tendersHTML(); $('#tCount').textContent=firmLv()>=TENDER_LV&&(S.tenders||[]).length?(S.tenders.length+T(' İHALE',S.tenders.length===1?' TENDER':' TENDERS')):'';
 
   /* listings */
@@ -1968,14 +1972,14 @@ function render(){
     const lvl=up(u.id), c=upCost(u,lvl);
     return `<div class="uitem"><h4>${u.name}<span class="lv">${T('Sv.','Lv.')} ${lvl}</span></h4>
       <p>${u.what}</p>
-      <p class="fx"><span>${T('Şu an','Now')}: ${u.show(u.eff(lvl),lvl)}</span><span>${T('Sonraki','Next')}: ${u.show(u.eff(lvl+1),lvl+1)}</span></p>
-      <button class="btn" data-a="buy" data-id="${u.id}" ${S.cash<c?'disabled':''}>${fmt(c)}</button></div>`}).join('')).join('');
+      <p class="fx"><span>${T('Şu an','Now')}: ${u.show(u.eff(lvl),lvl)}</span>${upMax(u)?'':`<span>${T('Sonraki','Next')}: ${u.show(u.eff(lvl+1),lvl+1)}</span>`}</p>
+      <button class="btn" data-a="buy" data-id="${u.id}" ${upMax(u)||S.cash<c?'disabled':''}>${upMax(u)?T('En yüksek seviye','Max level'):fmt(c)}</button></div>`}).join('')).join('');
 
   /* log */
   out['#foot']=`<span>${T('Bu şirketin toplam kârı','Total profit this firm')}: <b class="num">${fmt(S.profit)}</b></span>${S.debt>0.05?`·<span>${T('Banka borcu','Bank debt')}: <b class="num">${fmt(S.debt)}</b></span><button class="link" data-a="paydebt">${T('Kasadan öde','Pay from cash')}</button>`:''}`;
   if(D){ out['#daily']=dailyHTML(); const rdy=D.list.filter(c=>c.done&&!c.claimed).length+(D.full&&!D.bonusClaimed?1:0);
     $('#dayBadge').hidden=!rdy; $('#dayBadge').textContent=rdy; }
-  const canBuy=UPG.filter(u=>S.cash>=upCost(u,up(u.id))).length;
+  const canBuy=UPG.filter(u=>!upMax(u)&&S.cash>=upCost(u,up(u.id))).length;
   $('#upBadge').hidden=!canBuy; $('#upBadge').textContent=canBuy;
   /* crews store: show what you own plus the next two to unlock */
   const top=CREWS.reduce((a,c,i)=>crewN(c.id)>0?i:a,-1);
@@ -2494,17 +2498,18 @@ function startClock(){
 }
 
 function save(){ S.seen=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} saveBrand();}
-/* Time away (game closed or tab in the background), 1 s = 1 week:
-   - the firm keeps working at half speed for up to OFF_CAP: the site builds, flats sell, rent comes in, and the
-     estate manager signs the next plot. This is the real game loop (step) run in bulk;
-   - for the rest of the time away only rent comes in, up to AWAY_CAP in total. */
-const AWAY_CAP=7*86400, OFF_CAP=8*3600, OFF_EFF=0.5, OFF_BUDGET_MS=2500;
+/* Time away (game closed or tab in the background), 1 s = 1 week. For up to offCap() — one hour at first, longer
+   with the Night watchman upgrade — the firm keeps working at half speed: the site builds, flats sell, rent comes
+   in, and the estate manager signs the next plot. That half is the real game loop (step) run in bulk; the other
+   half of the time pays rent only. Past offCap() nothing is earned. */
+const OFF_EFF=0.5, OFF_BUDGET_MS=2500;
+const offCap=()=>E('watch')*3600;
 function fmtDur(sec){ sec=Math.floor(sec); const d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60);
   return d?T(`${d} gün ${h} sa`,`${d}d ${h}h`):h?T(`${h} sa ${m} dk`,`${h}h ${m}m`):m?T(`${m} dk`,`${m} min`):T(`${sec} sn`,`${sec} s`); }
 function accrueAway(){
   if(!S||!S.seen) return;
   const gap=(Date.now()-S.seen)/1000; if(gap<5) return;
-  const secs=Math.min(gap,AWAY_CAP), all0=P.all||0, n=Math.floor(Math.min(secs,OFF_CAP)*OFF_EFF);
+  const secs=Math.min(gap,offCap()), all0=P.all||0, n=Math.floor(secs*OFF_EFF);
   let ran=0, done=0;
   if(n>0){
     if(N){ N=null; $('#neg').hidden=true; $('#neg').innerHTML=''; }   /* an open haggle would hold the manager back */
@@ -2519,8 +2524,8 @@ function accrueAway(){
   }
   S.seen=Date.now();
   const total=(P.all||0)-all0;
-  if(total>0||done>0){ S.away={amt:total,secs,capped:gap>AWAY_CAP,done,siteCap:gap>OFF_CAP};
-    addLog(T(`Sen yokken ${fmtDur(secs)} geçti${done?`, ${NUM(done)} bina teslim edildi`:''}. Gelir: ${fmt(total)}.`,`You were away ${fmtDur(secs)}${done?`; ${NUM(done)} ${done===1?'building':'buildings'} handed over`:''}. Income: ${fmt(total)}.`),'good'); }
+  if(total>0||done>0){ S.away={amt:total,secs,capH:gap>offCap()?E('watch'):0,done};
+    addLog(T(`Sen yokken firma ${fmtDur(secs)} çalıştı${done?`, ${NUM(done)} bina teslim edildi`:''}. Gelir: ${fmt(total)}.`,`While you were away the firm worked ${fmtDur(secs)}${done?`; ${NUM(done)} ${done===1?'building':'buildings'} handed over`:''}. Income: ${fmt(total)}.`),'good'); }
   save();
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&S){ accrueAway(); render(); } });
@@ -2593,7 +2598,7 @@ document.addEventListener('click',e=>{
     case 'skip': skipPlot(+id); break;
     case 'sign': sign(); break;
     case 'buy':{ const u=UPG.find(x=>x.id===id), lvl=up(id), c=upCost(u,lvl);
-      if(S.cash>=c){S.cash-=c;S.up[id]=lvl+1;emit('upgrade');addLog(T(`Alındı: ${u.name} (seviye ${S.up[id]}).`,`Bought: ${u.name} (level ${S.up[id]}).`),'good');if(false)refill();save();render();} break; }
+      if(!upMax(u)&&S.cash>=c){S.cash-=c;S.up[id]=lvl+1;emit('upgrade');addLog(T(`Alındı: ${u.name} (seviye ${S.up[id]}).`,`Bought: ${u.name} (level ${S.up[id]}).`),'good');if(false)refill();save();render();} break; }
     case 'rush': if(!e.detail) rush(+id,e); break; /* pointer taps are handled by the pointer handler below */
     case 'dec': decide(+id,b.dataset.c,e); break;
     case 'qual': if(N){ N.q=b.dataset.c; N.sure2=false; renderNeg(); } break;
