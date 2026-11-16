@@ -1,4 +1,4 @@
-// Smoke test: the game loads in Turkish and English without page errors, and talks to the Play Games and AdMob bridges.
+// Smoke test: the game loads in Turkish and English without page errors, and talks to the Play Games, AdMob and reminder bridges.
 // In English it also lists visible text that still contains Turkish letters (warning only; names are allowed).
 // Usage: node tests/smoke.mjs [path/to/index.html]
 import { chromium } from 'playwright';
@@ -159,6 +159,44 @@ for (const lang of ['tr', 'en']) {
     && calls.some(c => c[0] === 'privacy') && calls.filter(c => c[0] === 'show').length === 2 && !errors.length;
   console.log(`[ads] watched=${watched}, unavailable=${JSON.stringify(noad)}, privacy row ${shown ? 'shown' : 'MISSING'}, calls: ${calls.map(c => c.join(':')).join(', ')}`);
   if (!ok) { console.error('[ads] AdMob bridge check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
+  await ctx.close();
+}
+// Reminder bridge: with a fake window.AndroidNotify the game asks for permission once (only after the first
+// handover), plans an "away" reminder at the Night watchman cap plus a next-morning daily one, shows the Settings row,
+// and an Off toggle clears the plan.
+{
+  const ctx = await browser.newContext({ viewport: { width: 400, height: 860 }, locale: 'en-US' });
+  await ctx.addInitScript(() => {
+    localStorage.setItem('kk-tycoon-lang-v1', 'en');
+    window.__nt = { perm: 'ask', asks: 0, plans: [] };
+    window.AndroidNotify = {
+      permission: () => window.__nt.perm,
+      requestPermission: () => { window.__nt.asks++; window.__nt.perm = 'granted'; setTimeout(() => window.__notifyState(), 10); },
+      openSettings: () => {},
+      setPlan: j => window.__nt.plans.push(JSON.parse(j)),
+    };
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto(url);
+  await page.waitForTimeout(500);
+  const early = await page.evaluate(() => { Notify.sync(true); return window.__nt.asks; });
+  const r = await page.evaluate(async () => {
+    S.rep = 1; const fake = !S.projects.length; if (fake) S.projects.push({ id: 999 });   // the away reminder needs a building
+    Notify.sync(true); await new Promise(res => setTimeout(res, 100));
+    Notify.sync(true); if (fake) S.projects.pop();
+    const plan = window.__nt.plans[window.__nt.plans.length - 1] || [];
+    const away = plan.find(x => x.id === 'away'), daily = plan.find(x => x.id === 'daily');
+    setTab('set');
+    const shown = !document.getElementById('notifSec').hidden;
+    document.querySelector('#setNotif [data-a="set"][data-c="off"]').click();
+    const off = window.__nt.plans[window.__nt.plans.length - 1];
+    return { asks: window.__nt.asks, away: away && away.after === offCap() && away.quiet, daily: daily && new Date(daily.at).getHours() === 10 && daily.at > Date.now(), shown, off: Array.isArray(off) && off.length === 0 };
+  });
+  const ok = early === 0 && r.asks === 1 && r.away && r.daily && r.shown && r.off && !errors.length;
+  console.log(`[notify] asked before handover=${early}, after=${r.asks}, away plan=${r.away}, daily plan=${r.daily}, settings row ${r.shown ? 'shown' : 'MISSING'}, off clears=${r.off}`);
+  if (!ok) { console.error('[notify] reminder bridge check failed' + (errors.length ? ':\n  ' + errors.join('\n  ') : '')); failed = true; }
   await ctx.close();
 }
 await browser.close();

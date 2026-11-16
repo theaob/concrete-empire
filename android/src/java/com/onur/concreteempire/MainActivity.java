@@ -15,11 +15,13 @@ import android.window.OnBackInvokedDispatcher;
 
 /** Full-screen WebView that runs assets/index.html (the whole game). Saves live in the WebView's localStorage.
  *  window.AndroidGames (PlayGamesBridge) connects the game to Google Play Games Services,
- *  window.AndroidAds (AdsBridge) to AdMob rewarded ads. */
+ *  window.AndroidAds (AdsBridge) to AdMob rewarded ads, window.AndroidNotify (NotifyBridge) to local reminders
+ *  that are only scheduled while the game is in the background. */
 public class MainActivity extends Activity {
     private WebView web;
     private PlayGamesBridge games;
     private AdsBridge ads;
+    private NotifyBridge notify;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -47,6 +49,8 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(games, "AndroidGames");
         ads = new AdsBridge(this, web);
         if (ads.enabled()) web.addJavascriptInterface(ads, "AndroidAds");
+        notify = new NotifyBridge(this, web);
+        web.addJavascriptInterface(notify, "AndroidNotify");
         setContentView(web);
         hideBars();
         if (Build.VERSION.SDK_INT >= 33) {
@@ -80,10 +84,19 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onPause() { web.onPause(); super.onPause(); }
+    protected void onPause() { notify.schedule(); web.onPause(); super.onPause(); }
 
     @Override
-    protected void onResume() { super.onResume(); web.onResume(); if (games != null) games.refresh(); }
+    protected void onResume() {
+        super.onResume(); web.onResume(); notify.cancel(); notify.pushState();
+        if (games != null) games.refresh();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int req, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(req, perms, results);
+        if (req == NotifyBridge.REQ_PERMISSION) notify.pushState();
+    }
 
     @Override
     public void onBackPressed() {

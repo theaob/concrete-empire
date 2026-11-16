@@ -602,6 +602,10 @@ input[type=range]{width:100%;accent-color:var(--rust);height:28px}
       <div class="srow"><div data-en="&lt;b&gt;On handover&lt;/b&gt;&lt;small&gt;Applied automatically to your units in every finished building.&lt;/small&gt;"><b>Teslimde</b><small>Biten her binadaki senin dairelerine otomatik uygulanır.</small></div><div id="setPolicy"></div></div>
     </div>
   </section>
+  <section id="notifSec" hidden>
+    <h2 data-en="Notifications">Bildirimler</h2>
+    <div class="card setc" id="setNotif"></div>
+  </section>
   <section id="adsSec" hidden>
     <h2 data-en="Ads">Reklamlar</h2>
     <div class="card setc">
@@ -707,6 +711,49 @@ function pgsHTML(){
   const on=PGS.on;
   return `<div class="srow"><div><b>${on?T('Bağlı','Signed in'):T('Bağlı değil','Not signed in')}${on&&PGS.name?` · ${esc(PGS.name)}`:''}</b><small>${on?T('Başarımların ve skorların Google Play Games hesabına otomatik işlenir.','Your achievements and scores are saved to your Google Play Games account automatically.'):T('Giriş yapınca başarımların ve liderlik tablosu skorların Google Play Games hesabına kaydedilir. Oyun girişsiz de aynen oynanır.','Sign in to save achievements and leaderboard scores to your Google Play Games account. The game plays the same without it.')}</small></div></div>
     <div class="sbtns">${on?`<button class="btn" data-a="pgsach">${T('Başarımlar','Achievements')}</button><button class="btn ghostb" data-a="pgslb">${T('Liderlik tabloları','Leaderboards')}</button>`:`<button class="btn" data-a="pgsin">${T('Google Play Games ile giriş yap','Sign in with Google Play Games')}</button>`}</div>`;
+}
+/* ===== Reminders =====
+   In the Android app window.AndroidNotify (NotifyBridge) shows local reminders while the game is closed; nothing is sent
+   anywhere. The page keeps a plan up to date (setPlan) and the app turns it into alarms only when it goes to the
+   background, cancelling them when the player is back. Kept sparse on purpose: at most one "the firm stopped earning"
+   reminder per absence and one "new daily tasks" reminder the next morning, never two within two hours, never at night.
+   Android 13+ asks the player for permission once, after their first handover. Elsewhere it's inert. */
+const Notify={last:0,lastJ:'',
+  bridge(){ try{ const n=window.AndroidNotify; return n&&n.permission?n:null; }catch(e){ return null; } },
+  perm(){ const b=this.bridge(); try{ return b?String(b.permission()):'none'; }catch(e){ return 'none'; } },
+  plan(){
+    const out=[];
+    if(S&&S.projects.length){ const h=E('watch');
+      out.push({id:'away',after:offCap(),quiet:true,title:T('Gece bekçisinin mesaisi bitti','The night watchman has clocked off'),
+        body:T(`Firma ${h} saat çalıştı ve şimdi bekliyor. Gel, kazancını kasaya al.`,`The firm worked for ${h} ${h===1?'hour':'hours'} and is now idle. Come back and bank the earnings.`)}); }
+    if(D){ const t=new Date(); t.setDate(t.getDate()+1); t.setHours(10,0,0,0); const st=D.full?(D.streak||0):0;
+      out.push({id:'daily',at:t.getTime(),quiet:true,title:T('Yeni günlük görevler geldi','New daily tasks are in'),
+        body:st?T(`${st} günlük serin devam ediyor. Bugünün görevlerini bitir, ustabaşı primini kaçırma.`,`Your ${st}-day streak is alive. Finish today's tasks and collect the foreman's bonus.`)
+          :T('Üç yeni görev ve ustabaşı primi seni bekliyor.','Three new tasks and a foreman\'s bonus are waiting.')}); }
+    return out;
+  },
+  sync(force){
+    const b=this.bridge(); if(!b||!S) return;
+    const now=Date.now(); if(!force&&now-this.last<15000) return; this.last=now;
+    this.maybeAsk(b);
+    const j=JSON.stringify(SET.notif?this.plan():[]); if(j===this.lastJ) return; this.lastJ=j;
+    try{ b.setPlan(j); }catch(e){}
+  },
+  /* One permission prompt, at a calm moment after the first handover; Settings can ask again later. */
+  maybeAsk(b){
+    if(!SET.notif||SET.notifAsked||(S.rep||0)<1||N||TN||document.visibilityState!=='visible'||this.perm()!=='ask') return;
+    SET.notifAsked=true; saveSet();
+    addLog(T('İstersen, sen yokken firma durduğunda ve yeni görevler geldiğinde telefonun haber versin. Ayarlar sekmesinden kapatabilirsin.','If you like, your phone can let you know when the firm stops while you\'re away and when new tasks are in. You can turn this off in Settings.'),'good');
+    try{ b.requestPermission(); }catch(e){}
+  }};
+window.__notifyState=()=>{ Notify.sync(true); if(S&&TAB==='set') render(); };
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') Notify.sync(true); });
+function notifyHTML(){
+  const p=Notify.perm(), on=SET.notif, blocked=on&&p==='blocked';
+  return `<div class="srow"><div><b>${T('Hatırlatmalar','Reminders')}</b><small>${blocked?T('Telefonun bu oyunun bildirimlerini engelliyor. Açmak için telefon ayarlarına git.','Your phone is blocking notifications from this game. Open the phone settings to allow them.')
+      :T('Sen yokken firma durduğunda ve ertesi sabah yeni günlük görevler geldiğinde. Gece 22:00 ile 09:00 arası sessiz.','When the firm stops while you\'re away, and the next morning when new daily tasks are in. Quiet from 10 pm to 9 am.')}</small></div>${segHTML(T('Hatırlatmalar','Reminders'),'notif',[['on',T('Açık','On')],['off',T('Kapalı','Off')]],on?'on':'off')}</div>
+    ${blocked?`<div class="sbtns"><button class="btn ghostb" data-a="notifset">${T('Telefon ayarlarını aç','Open phone settings')}</button></div>`
+      :on&&p==='ask'?`<div class="sbtns"><button class="btn" data-a="notifask">${T('Bildirimlere izin ver','Allow notifications')}</button></div>`:''}`;
 }
 /* Static page text carries its English in data-en attributes; swap it in once at startup. */
 if(LANG==='en'){
@@ -1964,7 +2011,8 @@ function render(){
     out['#setPolicy']=segHTML(T('Teslimde','On handover'),'policy',POLICIES,policy(),'policy');
     out['#setReset']=resetHTML();
     { const sec=$('#pgsSec'), g=!!PGS.bridge(); if(sec) sec.hidden=!g; if(g) out['#setPgs']=pgsHTML(); }
-    { const sec=$('#adsSec'); if(sec) sec.hidden=!Ads.privacy(); } }
+    { const sec=$('#adsSec'); if(sec) sec.hidden=!Ads.privacy(); }
+    { const sec=$('#notifSec'), n=!!Notify.bridge(); if(sec) sec.hidden=!n; if(n) out['#setNotif']=notifyHTML(); } }
   out['#projects']=others.length?others.map(projRow).join(''):`<div class="empty">${T('Henüz teslim edilen bina yok.','No buildings handed over yet.')}</div>`;
 
   /* upgrades */
@@ -2286,7 +2334,7 @@ const POLICIES=[['sell',T('Hepsini sat','Sell all')],['half',T('Yarısını kira
 const policy=()=>S.policy||'sell';
 /* Settings live outside the save so a new game keeps them. */
 const SKEY='kk-tycoon-set-v1';
-let SET={theme:'auto',ticker:true,anim:true};
+let SET={theme:'auto',ticker:true,anim:true,notif:true,notifAsked:false};
 try{ Object.assign(SET,JSON.parse(localStorage.getItem(SKEY)||'{}')); }catch(e){}
 function applySet(){ const r=document.documentElement;
   if(SET.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',SET.theme);
@@ -2497,7 +2545,7 @@ function startClock(){
   window.__kkTimer=setInterval(()=>{ if(document.visibilityState!=='hidden'){ dailyRollover(); tick(); } },1000);
 }
 
-function save(){ S.seen=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} saveBrand();}
+function save(){ S.seen=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} saveBrand(); Notify.sync();}
 /* Time away (game closed or tab in the background), 1 s = 1 week. For up to offCap() — one hour at first, longer
    with the Night watchman upgrade — the firm keeps working at half speed: the site builds, flats sell, rent comes
    in, and the estate manager signs the next plot. That half is the real game loop (step) run in bulk; the other
@@ -2561,7 +2609,10 @@ document.addEventListener('click',e=>{
     case 'ostep': { const l=N&&negListing(); if(!l) break; const U=unitsOf(l); N.o=b.dataset.c==='ask'?askF(l):clamp(N.o+(+b.dataset.c),0,U); updatePreview(); break; }
     case 'policy': S.policy=b.dataset.c; save(); render(); break;
     case 'auto': S.auto=b.dataset.c==='on'; S.listings.forEach(l=>l.auto=0); save(); render(); break;
-    case 'set': { const k=b.dataset.k, c=b.dataset.c; SET[k]=k==='theme'?c:c==='on'; saveSet(); if(k==='ticker'&&SET.ticker) renderTicker(); render(); break; }
+    case 'set': { const k=b.dataset.k, c=b.dataset.c; SET[k]=k==='theme'?c:c==='on'; saveSet(); if(k==='ticker'&&SET.ticker) renderTicker(); if(k==='notif'){ if(SET.notif&&Notify.perm()==='ask'){ SET.notifAsked=true; saveSet(); try{ Notify.bridge().requestPermission(); }catch(e){} } Notify.sync(true); }
+      render(); break; }
+    case 'notifset': try{ Notify.bridge().openSettings(); }catch(e){} break;
+    case 'notifask': SET.notifAsked=true; saveSet(); try{ Notify.bridge().requestPermission(); }catch(e){} break;
     case 'sexport': { const code=exportCode(), box=$('#saveBox'); box.value=code; box.select();
       const ok=()=>setMsg(T(`Kayıt kodu kopyalandı (${Math.round(code.length/1024)} KB). Diğer cihazda bu kutuya yapıştır.`,`Save code copied (${Math.round(code.length/1024)} KB). Paste it into this box on the other device.`));
       try{ navigator.clipboard.writeText(code).then(ok,()=>{ try{ document.execCommand('copy'); ok(); }catch(e){ setMsg(T('Kod kutuda seçili, elle kopyala.','Code is selected in the box, copy it manually.')); } }); }
