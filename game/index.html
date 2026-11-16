@@ -335,6 +335,10 @@ h2 .num{font-size:13px;color:var(--muted);letter-spacing:.05em}
 #listings{grid-template-columns:minmax(0,1fr)}
 #listings .card{max-width:560px}
 .away{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--ok);border-radius:4px;padding:12px 14px}
+.auto{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--muted)}
+.auto span{flex:1;min-width:0}
+.auto button{font:inherit;font-size:13px;min-height:36px;padding:5px 12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;cursor:pointer;white-space:nowrap}
+.auto.off button{border-color:var(--ink);background:var(--hiviz);color:var(--on-hiviz);font-weight:600}
 .away>div{display:flex;flex-direction:column;gap:2px}
 .away b{font-family:var(--f-display);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:.03em}
 .away span{font-size:14px;color:var(--muted)} .away strong{color:var(--ok);font-size:16px}
@@ -906,7 +910,9 @@ document.title=GAME_NAME;
    Expiry is a wall-clock time, so a boost keeps counting down while the game is closed; rent paid for time away is not boosted. */
 const BOOST_MIN=3, BOOST_MAX=30;
 const boostLeft=k=>Math.max(0,((S.boost||{})[k]||0)-Date.now());
-const boostMul=k=>boostLeft(k)>0?2:1;
+/* SIM is set while time away is being fast-forwarded (see accrueAway): no news, no daily tasks, no ad boosts. */
+let SIM=null;
+const boostMul=k=>!SIM&&boostLeft(k)>0?2:1;
 function addBoost(k){ const b=S.boost=S.boost||{}; b[k]=Math.min(Date.now()+BOOST_MAX*60000,Math.max(Date.now(),b[k]||0)+BOOST_MIN*60000); }
 const fmtLeft=ms=>{ const s=Math.ceil(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
 function boostsHTML(){
@@ -996,7 +1002,7 @@ function refill(){
 /* Events surface as short notices; routine ones (no tone) stay silent. */
 /* News ticker: the last few events loop in a single line under the HUD. */
 const NEWS=[]; let newsId=0;
-function addLog(t,cls){ if(!cls) return; NEWS.unshift({t,c:cls,id:++newsId}); NEWS.length=Math.min(NEWS.length,6); renderTicker(); }
+function addLog(t,cls){ if(!cls||SIM) return; NEWS.unshift({t,c:cls,id:++newsId}); NEWS.length=Math.min(NEWS.length,6); renderTicker(); }
 function renderTicker(){
   const tk=$('#tk'); if(!tk) return;
   const list=NEWS.length?NEWS:[{t:T(`${GAME_NAME}: hoş geldin. Sıradaki parselin sahibiyle pazarlığa başla.`,`Welcome to ${GAME_NAME}. Start haggling with the next plot's owner.`),c:'good',when:''}];
@@ -1148,6 +1154,7 @@ function newDay(key){
 function dailyRollover(){ const k=dayKey(); if(!D||D.date!==k){ newDay(k); return true } return false }
 function dailyBonus(){return Math.round(rewardScale()*2*(1+Math.min(D.streak,6)*0.25)*2)/2}
 function emit(ev,data={}){
+  if(SIM){ if(ev==='complete') SIM.done++; return; }
   if(!D) return; let changed=false;
   for(const c of D.list){
     if(c.done) continue; const C=CH[c.k];
@@ -1889,12 +1896,14 @@ function render(){
   out['#stage']=sp?stageHTML(sp):'';
   if(sp&&sp.kind!=='tender') PICQ=sp;
   out['#boosts']=boostsHTML();
-  out['#away']=S.away?`<div class="away"><div><b>${T('Sen yokken','While you were away')}</b><span>${T(`${fmtDur(S.away.secs)} boyunca kiracılar ödedi:`,`Tenants paid over ${fmtDur(S.away.secs)}:`)} <strong class="num">${fmt(S.away.amt)}</strong>${S.away.capped?T(' (en fazla 7 günlük kira birikir)',' (rent piles up for 7 days max)'):''}</span></div><button class="btn" data-a="awayok">${T('Kasaya aldım','Bank it')}</button></div>`:'';
+  out['#away']=S.away?`<div class="away"><div><b>${T('Sen yokken','While you were away')}</b><span>${S.away.done!=null
+      ?T(`${fmtDur(S.away.secs)} geçti.${S.away.done?` Şantiye yarı hızda çalıştı, ${NUM(S.away.done)} bina teslim edildi.`:''} Satış ve kira geliri:`,`${fmtDur(S.away.secs)} went by.${S.away.done?` The site ran at half speed and handed over ${NUM(S.away.done)} ${S.away.done===1?'building':'buildings'}.`:''} Sales and rent income:`)
+      :T(`${fmtDur(S.away.secs)} boyunca kiracılar ödedi:`,`Tenants paid over ${fmtDur(S.away.secs)}:`)} <strong class="num">${fmt(S.away.amt)}</strong>${S.away.capped?T(' (en fazla 7 günlük kira birikir)',' (rent piles up for 7 days max)'):''}${S.away.siteCap?T(` (şantiye en fazla ${OFF_CAP/3600} saat çalışır)`,` (the site works for ${OFF_CAP/3600} hours max)`):''}</span></div><button class="btn" data-a="awayok">${T('Kasaya aldım','Bank it')}</button></div>`:'';
   out['#tenders']=tendersHTML(); $('#tCount').textContent=firmLv()>=TENDER_LV&&(S.tenders||[]).length?(S.tenders.length+T(' İHALE',S.tenders.length===1?' TENDER':' TENDERS')):'';
 
   /* listings */
   $('#lCount').textContent=''; $('#lWrap').hidden=busy();
-  out['#listings']=busy()?`<div class="locked"><b>${T('Şantiye dolu','Site busy')}</b><span>${T('Sıradaki parsel, inşaat bitince gelecek.','The next plot shows up once the build is done.')}</span></div>`
+  out['#listings']=busy()?`<div class="locked"><b>${T('Şantiye dolu','Site busy')}</b><span>${T('Sıradaki parsel, inşaat bitince gelecek.','The next plot shows up once the build is done.')}</span></div>${autoHTML(null)}`
     :S.listings.length?S.listings.map(l=>{
     const D=DISTRICTS[l.d],U=unitsOf(l),fl=floorsOf(l);
     const temper=up('scout')>=1?TYPES[l.type].label:T('Mizacı bilinmiyor','Temper unknown');
@@ -1910,6 +1919,7 @@ function render(){
           <dt>${T('Ev sahibi','Owner')}</dt><dd style="font-family:var(--f-body)">${temper}</dd>${hint}
         </dl></div>
       <div class="row"><button class="btn" data-a="talk" data-id="${l.id}" ${busy()?'disabled':''}>${busy()?T('İnşaat sürüyor','Build in progress'):l.talked?T('Görüşmeye dön','Resume talks'):T('Pazarlık et','Haggle')}</button></div>
+      ${autoHTML(l)}
     </article>`}).join(''):`<div class="empty">${T('Sıradaki parsel hazırlanıyor.','Next plot is on its way.')}</div>`;
 
   /* other buildings (the stage project is shown above) */
@@ -2099,15 +2109,66 @@ function sign(){
   const l=negListing(); if(!l||!N.deal) return;
   if(activeBuilds()>=maxSites()){toast(T('İnşaat sürerken yeni sözleşme imzalanamaz',"Can't sign a new deal mid-build"));return}
   if(S.cash<N.deal.c){toast(T('Ek ödeme için nakit yetmiyor','Not enough cash for the sweetener'));return}
-  const q=N.q||'std', fl=floorsOf(l),U=unitsOf(l),total=U*unitCost(l.d)*QUAL[q].cost,months=buildMonths(fl);
-  S.cash-=N.deal.c;
-  S.projects.push({blocks:l.blocks||1,m2Tot:U*100,m2Done:0,apt:aptName(l.name,l.d,q,U),mf0:matF(),id:S.nextId++,d:l.d,owner:l.name,fl,upf:l.upf,U,o:N.deal.o,dev:U-N.deal.o,months,prog:0,monthly:total/months,total,q,plan:{},dec:{},qs:0,skims:[],caught:[],pend:null,status:'build',sold:0,spent:N.deal.c,income:0,delay:0,stalled:false});
-  S.listings=S.listings.filter(x=>x.id!==l.id);
-  { const sh=N.deal.o/U*100; emit('sign',{share:sh,drop:(l.ask0??l.ask)-sh,cash:N.deal.c,d:l.d}); }
+  const U=unitsOf(l), q=N.q||'std';
+  signDeal(l,N.deal.o,N.deal.c,q);
   addLog(T(`${l.name} ile imzalandı. Yeni binanın adı: ${S.projects[S.projects.length-1].apt}. ${N.deal.o} daire ev sahibine, ${U-N.deal.o} daire sana; ${LOW(QUAL[q].name)} kalitede hafriyat başlıyor.`,`Signed with ${l.name}. New building: ${S.projects[S.projects.length-1].apt}. ${N.deal.o} to the owner, ${U-N.deal.o} to you; ${LOW(QUAL[q].name)}-grade excavation begins.`),'good');
-  S.stageId=S.projects[S.projects.length-1].id;
   save(); closeNeg();
   requestAnimationFrame(()=>$('#stageWrap')?.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+/* Puts the signed deal on site: o flats to the owner, c cash sweetener, q build quality. */
+function signDeal(l,o,c,q){
+  const fl=floorsOf(l),U=unitsOf(l),total=U*unitCost(l.d)*QUAL[q].cost,months=buildMonths(fl);
+  S.cash-=c;
+  const p={blocks:l.blocks||1,m2Tot:U*100,m2Done:0,apt:aptName(l.name,l.d,q,U),mf0:matF(),id:S.nextId++,d:l.d,owner:l.name,fl,upf:l.upf,U,o,dev:U-o,months,prog:0,monthly:total/months,total,q,plan:{},dec:{},qs:0,skims:[],caught:[],pend:null,status:'build',sold:0,spent:c,income:0,delay:0,stalled:false};
+  S.projects.push(p);
+  S.listings=S.listings.filter(x=>x.id!==l.id);
+  { const sh=o/U*100; emit('sign',{share:sh,drop:(l.ask0??l.ask)-sh,cash:c,d:l.d}); }
+  S.stageId=p.id;
+  return p;
+}
+/* ===== Estate manager (auto-deal) =====
+   A plot nobody haggles over for AUTO_SECS seconds is signed by the estate manager, so the firm keeps building
+   unattended (and while the game is closed). The manager settles halfway between the owner's ask and their bottom
+   line — haggling yourself still gets the better share — and never signs a deal that would lose money or that
+   cash plus off-plan sales couldn't finance; such a plot is passed over for the next one.
+   While a build runs short of cash the manager also sells flats off-plan, just enough to keep the site working. */
+const AUTO_SECS=20, AUTO_K=0.5, AUTO_MARGIN=1.05;
+const autoOn=()=>S.auto!==false;
+function autoPlan(l){
+  const U=unitsOf(l), total=U*unitCost(l.d)*AUTO_MARGIN, pr=brandMul()*price(l.d)*(1+E('design'));
+  const lo=clamp(resF(l),1,U-1), ok=o=>(U-o)*pr>=total&&S.cash+(U-o)*pr*presellK()>=total;
+  let o=clamp(Math.ceil((effRes(l)+(l.ask-effRes(l))*AUTO_K)/100*U-1e-9),lo,Math.max(lo,Math.min(askF(l),U-1)));
+  while(o>lo&&!ok(o)) o--;
+  return ok(o)?o:null;
+}
+const autoLeft=l=>Math.max(0,AUTO_SECS-(l.auto||0));
+function autoDeal(){
+  const l=S.listings[0]; if(!l||busy()||!autoOn()) return;
+  if(N&&N.lid===l.id) return;   /* you're at the table: the manager waits */
+  l.auto=(l.auto||0)+1; if(l.auto<AUTO_SECS) return;
+  const o=autoPlan(l);
+  if(o==null){ S.listings=S.listings.filter(x=>x.id!==l.id); return; }
+  const p=signDeal(l,o,0,'std');
+  addLog(T(`Emlak müdürü ${l.name} ile imzaladı: ${o} daire ev sahibine, ${p.dev} daire sana. Yeni bina: ${p.apt}.`,`Your estate manager signed with ${l.name}: ${o} to the owner, ${p.dev} to you. New building: ${p.apt}.`),'good');
+}
+function presellN(p,n){
+  n=Math.min(n,p.dev-p.sold); if(n<=0) return 0;
+  const amt=n*priceOf(p)*presellK(); earn(amt); p.income+=amt; p.sold+=n; emit('presell',{n}); emit('sale',{n,amt}); return amt;
+}
+function autoPresell(p){
+  if(!autoOn()||p.kind==='tender'||p.sold>=p.dev) return;
+  const need=Math.min(m2ps()*boostMul('speed'),m2Left(p))*costPerM2(p)-S.cash; if(need<=0) return;
+  const n=Math.min(p.dev-p.sold,Math.ceil(need/(priceOf(p)*presellK())-1e-9)), amt=presellN(p,n);
+  if(amt) addLog(T(`Emlak müdürü ${aptOf(p)} şantiyesi durmasın diye maketten ${n} daire sattı: ${fmt(amt)}.`,`Your estate manager sold ${n} ${n===1?'unit':'units'} off-plan to keep ${aptOf(p)} going: ${fmt(amt)}.`),'good');
+}
+function autoHTML(l){
+  if(!autoOn()) return `<div class="auto off"><span>${T('Emlak müdürü kapalı: anlaşmaları yalnızca sen imzalarsın.','Estate manager is off: only you sign deals.')}</span><button data-a="auto" data-c="on">${T('Aç','Turn on')}</button></div>`;
+  let t;
+  if(!l) t=T('Emlak müdürü açık: sen pazarlık etmezsen sıradaki parseli o imzalar.','Estate manager is on: plots you don\'t haggle over get signed for you.');
+  else{ const o=autoPlan(l), left=autoLeft(l);
+    t=o==null?T(`Emlak müdürü bu parseli kârlı bulmuyor, ${left} sn sonra pas geçecek.`,`Your estate manager sees no profit in this plot and will pass in ${left}s.`)
+      :T(`Pazarlık etmezsen emlak müdürü ${left} sn sonra ${o} daireye imzalar.`,`If you don't haggle, your estate manager signs for ${o} ${o===1?'unit':'units'} in ${left}s.`); }
+  return `<div class="auto"><span>${t}</span><button data-a="auto" data-c="off">${T('Kapat','Turn off')}</button></div>`;
 }
 
 /* Turn */
@@ -2256,14 +2317,17 @@ function popAt(ev,txt,bad){
   el.style.left=(r.x+(Math.random()*24-12))+'px'; el.style.top=(r.y-10)+'px';
   document.body.appendChild(el); setTimeout(()=>el.remove(),900);
 }
-function tick(){
+/* One game week. tick() runs it once a second; accrueAway() runs it in bulk for time spent away. */
+function step(){
   S.week=(S.week||0)+1;
   autoOutcome();
   refill();
+  autoDeal();
   for(const p of S.projects){
     if(p.status==='build'){
       /* Running on rent alone means some ticks have cash and some don't: only call it stalled after
          3 dry ticks in a row, so the site doesn't flicker between working and stopped. */
+      autoPresell(p);
       if(work(p,m2ps()*boostMul('speed'))===false){ p.dry=(p.dry||0)+1; if(p.dry>=3&&!p.stalled){ p.stalled=true; emit('stall'); addLog(T(`${aptOf(p)} taksiti için nakit yok. Şantiye durdu.`,`No cash for the ${aptOf(p)} instalment. Site stopped.`),'badt'); } }
       else p.dry=0;
     } else if(p.status==='sell'||p.status==='rent'){
@@ -2283,9 +2347,9 @@ function tick(){
   if(S.week>=WEEKS){ S.week=0; S.month++; emit('month'); monthly(); }
   serviceDebt();
   emit('state');
-  PGS.check();
-  save(); render();
+  if(!SIM) PGS.check();
 }
+function tick(){ step(); save(); render(); }
 function moveMaterials(){
   const m=S.mat||(S.mat={c:C0,s:S0,ch:[C0],sh:[S0]});
   m.c=clamp(m.c*(1+(Math.random()-0.46)*0.05),C0*.6,C0*2.5);
@@ -2353,20 +2417,33 @@ function startClock(){
 }
 
 function save(){ S.seen=Date.now(); try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} saveBrand();}
-/* Rent keeps coming while the game is closed or the tab is in the background (1 s = 1 week, up to 7 days). */
-const AWAY_CAP=7*86400;
+/* Time away (game closed or tab in the background), 1 s = 1 week:
+   - the firm keeps working at half speed for up to OFF_CAP: the site builds, flats sell, rent comes in, and the
+     estate manager signs the next plot. This is the real game loop (step) run in bulk;
+   - for the rest of the time away only rent comes in, up to AWAY_CAP in total. */
+const AWAY_CAP=7*86400, OFF_CAP=8*3600, OFF_EFF=0.5, OFF_BUDGET_MS=2500;
 function fmtDur(sec){ sec=Math.floor(sec); const d=Math.floor(sec/86400),h=Math.floor(sec%86400/3600),m=Math.floor(sec%3600/60);
   return d?T(`${d} gün ${h} sa`,`${d}d ${h}h`):h?T(`${h} sa ${m} dk`,`${h}h ${m}m`):m?T(`${m} dk`,`${m} min`):T(`${sec} sn`,`${sec} s`); }
 function accrueAway(){
   if(!S||!S.seen) return;
   const gap=(Date.now()-S.seen)/1000; if(gap<5) return;
-  const secs=Math.min(gap,AWAY_CAP); let total=0;
+  const secs=Math.min(gap,AWAY_CAP), all0=P.all||0, n=Math.floor(Math.min(secs,OFF_CAP)*OFF_EFF);
+  let ran=0, done=0;
+  if(n>0){
+    if(N){ N=null; $('#neg').hidden=true; $('#neg').innerHTML=''; }   /* an open haggle would hold the manager back */
+    SIM={done:0}; const t0=Date.now();
+    try{ while(ran<n){ step(); ran++; if((ran&127)===0&&Date.now()-t0>OFF_BUDGET_MS) break; } }
+    finally{ done=SIM.done; SIM=null; }
+  }
+  const rest=secs-ran;
   for(const p of S.projects){
     if((p.status==='sell'||p.status==='rent')&&p.rentN>0){
-      const r=rentOf(p)/WEEKS*secs; earn(r); p.income+=r; p.rentInc=(p.rentInc||0)+r; if(p.booked) S.profit+=r; total+=r; }
+      const r=rentOf(p)/WEEKS*rest; earn(r); p.income+=r; p.rentInc=(p.rentInc||0)+r; if(p.booked) S.profit+=r; }
   }
   S.seen=Date.now();
-  if(total>0){ S.away={amt:total,secs,capped:gap>AWAY_CAP}; addLog(T(`Sen yokken ${fmtDur(secs)} geçti, ${fmt(total)} kira toplandı.`,`You were away ${fmtDur(secs)}; ${fmt(total)} rent collected.`),'good'); }
+  const total=(P.all||0)-all0;
+  if(total>0||done>0){ S.away={amt:total,secs,capped:gap>AWAY_CAP,done,siteCap:gap>OFF_CAP};
+    addLog(T(`Sen yokken ${fmtDur(secs)} geçti${done?`, ${NUM(done)} bina teslim edildi`:''}. Gelir: ${fmt(total)}.`,`You were away ${fmtDur(secs)}${done?`; ${NUM(done)} ${done===1?'building':'buildings'} handed over`:''}. Income: ${fmt(total)}.`),'good'); }
   save();
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&S){ accrueAway(); render(); } });
@@ -2401,6 +2478,7 @@ document.addEventListener('click',e=>{
     case 'adprivacy': try{ window.AndroidAds.showPrivacyOptions(); }catch(e){} break;
     case 'ostep': { const l=N&&negListing(); if(!l) break; const U=unitsOf(l); N.o=b.dataset.c==='ask'?askF(l):clamp(N.o+(+b.dataset.c),0,U); updatePreview(); break; }
     case 'policy': S.policy=b.dataset.c; save(); render(); break;
+    case 'auto': S.auto=b.dataset.c==='on'; S.listings.forEach(l=>l.auto=0); save(); render(); break;
     case 'set': { const k=b.dataset.k, c=b.dataset.c; SET[k]=k==='theme'?c:c==='on'; saveSet(); if(k==='ticker'&&SET.ticker) renderTicker(); render(); break; }
     case 'sexport': { const code=exportCode(), box=$('#saveBox'); box.value=code; box.select();
       const ok=()=>setMsg(T(`Kayıt kodu kopyalandı (${Math.round(code.length/1024)} KB). Diğer cihazda bu kutuya yapıştır.`,`Save code copied (${Math.round(code.length/1024)} KB). Paste it into this box on the other device.`));
@@ -2440,7 +2518,7 @@ document.addEventListener('click',e=>{
     case 'rush': if(!e.detail) rush(+id,e); break; /* pointer taps are handled by the pointer handler below */
     case 'dec': decide(+id,b.dataset.c,e); break;
     case 'qual': if(N){ N.q=b.dataset.c; renderNeg(); } break;
-    case 'presell':{ const p=S.projects.find(x=>x.id===+id); if(p&&p.sold<p.dev){const amt=priceOf(p)*presellK();earn(amt);p.income+=amt;p.sold++;emit('presell',{n:1});emit('sale',{n:1,amt});
+    case 'presell':{ const p=S.projects.find(x=>x.id===+id); if(p&&p.sold<p.dev){const amt=presellN(p,1);
       if(p.stalled){p.stalled=false} addLog(T(`${aptOf(p)} şantiyesinden maketten bir daire ${fmt(amt)} karşılığında satıldı.`,`Off-plan sale: 1 unit at ${aptOf(p)} sold for ${fmt(amt)}.`));save();render();} break; }
     case 'dump':{ const p=S.projects.find(x=>x.id===+id); if(p&&p.status==='sell'){const inv=toSell(p)-p.sold,amt=inv*priceOf(p)*0.85;earn(amt);p.income+=amt;p.sold+=inv;emit('sale',{n:inv,amt});
       addLog(T(`${inv} daire toplu olarak yatırımcıya ${fmt(amt)} karşılığında satıldı.`,`${inv} ${inv===1?'unit':'units'} sold in bulk to an investor for ${fmt(amt)}.`));settle(p);S.projects=S.projects.filter(x=>x.status!=='done');save();render();} break; }
