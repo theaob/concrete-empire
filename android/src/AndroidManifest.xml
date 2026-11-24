@@ -7,6 +7,10 @@
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <!-- Local reminders while the game is closed (Android 13+ asks the player; the game asks at a quiet moment). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- screenOrientation="portrait" below makes Play imply android.hardware.screen.portrait as REQUIRED, which hides
+         the app from tablets, Chromebooks, Play Games on PC and XR. The game still opens in portrait; this only says
+         the feature is not needed to install. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
     <application
         android:name=".App"
         android:label="${appName}"
