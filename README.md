@@ -52,7 +52,7 @@ uygulama adına yazar. Çıktı: `android/out/ConcreteEmpire-<sürüm>.apk` (v1+
 
 Testler: `npm install && npx playwright install chromium && npm test`.
 
-## Mevcut durum (sürüm 2.4)
+## Mevcut durum (sürüm 2.5)
 
 **Arayüz**
 - Üst bar: nakit, anlık kira (₺/sn, güçlendirme açıkken "×2"), net değer, firma seviyesi, itibar, çimento/demir.
@@ -100,7 +100,8 @@ Testler: `npm install && npx playwright install chromium && npm test`.
 - Kirayla yavaş ilerlerken şantiye ancak 3 sn üst üste nakit yoksa "durdu" olur.
 
 **Android**
-- Paket `com.onur.concreteempire`, son sürüm 2.4 (versionCode 14).
+- Paket `com.onur.concreteempire`, son sürüm 2.5 (versionCode 15).
+- Manifest `android.hardware.screen.portrait` özelliğini `required="false"` bildirir; yoksa dikey kilit yüzünden Play tablet, Chromebook, PC ve XR cihazlarını dışlar. Oyun yine dikey açılır.
 - Play Games `androidx.fragment` 1.1.0 getiriyor (Play Console "eski SDK" uyarısı); `build.gradle` 1.8.9'a sabitler, `build.sh` 1.1.x geri gelirse derlemeyi durdurur.
 - 1.x sürümleri `com.onur.katkarsiligi` paketindeydi; kayıt Ayarlar > Kayıt kodu ile taşınır.
 - Kayıt anahtarları (`kk-tycoon-*`) eski adla kaldı, değiştirilirse kayıtlar kaybolur.
