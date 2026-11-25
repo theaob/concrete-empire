@@ -28,7 +28,7 @@ uygulama imzalama anahtarıyla imzalar. Dosya adında `-TESTKEY` varsa secret'la
 ## Gizlilik politikası adresi
 
 `docs/privacy.html` ve oyunun web sürümü `.github/workflows/pages.yml` ile GitHub Pages'e yayınlanır. Bir kerelik ayar: repo
-**Settings › Pages › Build and deployment › Source: GitHub Actions**. Web sürümü: https://theaob.github.io/concrete-empire/ . Gizlilik adresi:
+**Settings › Pages › Build and deployment › Source: GitHub Actions**. Tanıtım sayfası (mağaza kaydındaki "Web sitesi" alanı için): https://theaob.github.io/concrete-empire/ , web sürümü: https://theaob.github.io/concrete-empire/play/ , kullanım koşulları: https://theaob.github.io/concrete-empire/terms.html . Gizlilik adresi:
 
 **https://theaob.github.io/concrete-empire/privacy.html**
 
